@@ -92,14 +92,14 @@ export default function SettingsPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span>{apiKeyConfigured ? "✅" : "⚠️"}</span>
               <span style={{ fontWeight: 700, fontSize: 14 }}>
-                {apiKeyConfigured ? "Gemini API キー設定済み" : "Gemini API キーを設定してください"}
+                {apiKeyConfigured ? "✅ OpenAI API キー設定済み" : "⚠️ OpenAI API キーを設定してください"}
               </span>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 className="chat-input"
                 type={showKey ? "text" : "password"}
-                placeholder="AIzaSy..."
+                placeholder="sk-..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 style={{ flex: 1 }}
@@ -109,8 +109,8 @@ export default function SettingsPage() {
               </button>
             </div>
             <div style={{ marginTop: 6, fontSize: 11, color: "var(--color-text-muted)" }}>
-              環境変数 GEMINI_API_KEY で設定するか、ここに入力してください。
-              <a href="https://aistudio.google.com/apikey" target="_blank" style={{ color: "var(--color-primary-light)", marginLeft: 4 }}>
+              環境変数 OPENAI_API_KEY で設定するか、ここに入力してください。
+              <a href="https://platform.openai.com/api-keys" target="_blank" style={{ color: "var(--color-primary-light)", marginLeft: 4 }}>
                 APIキーを取得 →
               </a>
             </div>
@@ -131,10 +131,10 @@ export default function SettingsPage() {
                   </div>
                   <span style={{
                     padding: "2px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700,
-                    background: id.includes("pro") ? "#e9d5ff" : "#dbeafe",
-                    color: id.includes("pro") ? "#6b21a8" : "#1d4ed8",
+                    background: id.includes("5.2") ? "#e9d5ff" : "#dbeafe",
+                    color: id.includes("5.2") ? "#6b21a8" : "#1d4ed8",
                   }}>
-                    {id.includes("pro") ? "高精度" : "高速"}
+                    {id.includes("5.2") ? "世界最高峰" : "高速"}
                   </span>
                 </div>
                 <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 8 }}>

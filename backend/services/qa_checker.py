@@ -129,7 +129,7 @@ def run_consistency_check(plan_data: dict) -> dict:
 # AI品質評価スコアリング (Section 4.2 LLM検証)
 # ============================================================
 def evaluate_plan_quality(plan_text: str, knowledge_base: list = []) -> dict:
-    """事業計画書の品質を評価する（Gemini AIを利用し、RAGコンテキストを渡す）"""
+    """事業計画書の品質を評価する（OpenAI/ChatGPT AIを利用し、RAGコンテキストを渡す）"""
     # ai_serviceモジュールのAI品質評価を利用する
     from services.ai_service import ai_quality_score
     return ai_quality_score(plan_text, subsidy_title="", knowledge_base=knowledge_base)

@@ -1,5 +1,5 @@
 # AI統合APIルーター
-# Gemini等のAIモデルを利用した品質評価・改善提案・文章生成エンドポイント
+# OpenAI / ChatGPT 等のAIモデルを利用した品質評価・改善提案・文章生成エンドポイント
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -10,7 +10,7 @@ from database import get_db
 from services.ai_service import (
     AVAILABLE_MODELS, DEFAULT_MODELS,
     ai_quality_score, ai_generate_plan_section, ai_generate_full_plan,
-    ai_improvement_suggestions, call_gemini, GEMINI_API_KEY,
+    ai_improvement_suggestions, call_openai, OPENAI_API_KEY,
 )
 from services.adoption_knowledge import (
     analyze_plan_against_knowledge,
@@ -43,7 +43,7 @@ class ImprovementRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     context: dict = {}
-    model: str = "gemini-2.5-flash"
+    model: str = "gpt-5.2"
 
 class FullPlanGenerateRequest(BaseModel):
     company_id: str
@@ -64,7 +64,7 @@ def list_models():
     return {
         "models": AVAILABLE_MODELS,
         "defaults": DEFAULT_MODELS,
-        "api_key_configured": bool(GEMINI_API_KEY),
+        "api_key_configured": bool(OPENAI_API_KEY),
     }
 
 
@@ -159,7 +159,7 @@ def generate_section(req: PlanGenerateRequest, db: Session = Depends(get_db)):
         knowledge_base=knowledge_base
     )
     if result:
-        return {"generated_text": result, "model": "gemini-2.5-flash"}
+        return {"generated_text": result, "model": "gpt-4o"}
     return {"generated_text": None, "model": "none", "message": "AI APIキーが未設定のため生成できませんでした。"}
 
 
@@ -336,7 +336,7 @@ def ai_chat(req: ChatRequest, db: Session = Depends(get_db)):
     if req.context:
         context_str = f"\n\nユーザー状況: {str(req.context)}"
 
-    result = call_gemini(
+    result = call_openai(
         f"{req.message}{context_str}",
         model=req.model,
         system_instruction=system_instruction,
