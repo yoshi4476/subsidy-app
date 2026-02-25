@@ -49,7 +49,7 @@
 | **Start Command**  | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
 3. **[Environment Variables] (環境変数)** を追加します：
-   - `GOOGLE_API_KEY`: 自分の Gemini API キー
+   - `OPENAI_API_KEY`: 自分の ChatGPT (OpenAI) API キー
    - `CORS_ORIGINS`: `*` (一旦星マークでOK)
 
 > [!IMPORTANT]
