@@ -8,7 +8,7 @@
 ## 🗺️ 公開までのロードマップ
 
 1. **GitHub** に預ける（コードの倉庫）
-2. **Render** で動かす（システムの脳：バックエンド）
+2. **Render** で動かす（システムの脳：バックエンド / OpenAI 連携）
 3. **Vercel** で表示する（システムの顔：フロントエンド）
 4. **Google** と連携する（ログインの鍵）
 
@@ -23,11 +23,10 @@
    ```bash
    git init
    git add .
-   git commit -m "公開準備完了！"
+   git commit -m "OpenAI搭載！公開準備完了"
    git remote add origin https://github.com/[GitHubのユーザー名]/subsidy-navi.git
    git push -u origin main
    ```
-   _※「Username」や「Password (Token)」を聞かれたら入力してください。_
 
 ---
 
@@ -49,7 +48,8 @@
 | **Start Command**  | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
 3. **[Environment Variables] (環境変数)** を追加します：
-   - `OPENAI_API_KEY`: 自分の ChatGPT (OpenAI) API キー
+   - `OPENAI_API_KEY`: 自分の **ChatGPT (OpenAI)** API キー
+     - [取得はこちら](https://platform.openai.com/api-keys)
    - `CORS_ORIGINS`: `*` (一旦星マークでOK)
 
 > [!IMPORTANT]
@@ -73,7 +73,7 @@
 | **Root Directory**   | `frontend`     |
 | **Framework Preset** | `Next.js`      |
 
-3. **[Environment Variables]** を開き、大切な 4 つの設定を入力します：
+3. **[Environment Variables]** を開き、大切な 5 つの設定を入力します：
    - `NEXT_PUBLIC_API_URL`: Render の URL に `/api` を付けたもの
      - 例: `https://subsidy-backend.onrender.com/api`
    - `NEXTAUTH_URL`: 自分の Vercel サイトの URL
@@ -108,8 +108,9 @@ python fix_admin_role_v2.py --email [あなたのGoogleメールアドレス]
 
 ## 📝 困ったときのチェックリスト
 
+- [ ] Render の環境変数名が `OPENAI_API_KEY` になっているか？
 - [ ] Render の URL は間違っていない？（最後に `/api` を付けるのを忘れずに！）
 - [ ] Google Cloud のリダイレクト URI は一文字も間違えずに登録した？
 - [ ] 環境変数を保存した後、サービスを再起動（Deploy）した？
 
-**おめでとうございます！これで世界中のどこからでも、あなたの補助金システムにアクセスできるようになりました！🌈**
+**おめでとうございます！世界最高峰の OpenAI (ChatGPT 5.2) を搭載した補助金システムが、世界に向けて公開されました！🌈**

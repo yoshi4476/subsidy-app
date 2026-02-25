@@ -204,6 +204,27 @@ def ai_generate_full_plan(company_data: dict, subsidy_info: dict, knowledge_base
         }
     return None
 
+def ai_generate_plan_section(section_name: str, user_input: str, company_data: dict = {}, subsidy_info: dict = {}, knowledge_base: list = []) -> Optional[str]:
+    """特定の申請書セクションを生成する（RAG対応）"""
+    kb_context = ""
+    if knowledge_base:
+        kb_context = "\n=== 参照ナレッジ ===\n"
+        for item in knowledge_base[:5]:
+            kb_context += f"- {item}\n"
+
+    prompt = f"""以下の情報に基づき、補助金申請書の「{section_name}」セクションを生成してください。
+ユーザーの入力内容: {user_input}
+企業DNA: {json.dumps(company_data, ensure_ascii=False)}
+補助金情報: {json.dumps(subsidy_info, ensure_ascii=False)}
+{kb_context}
+
+要件:
+- 企業の強み（DNA）を活かした論理的な文章にすること。
+- ROI（投資効果）と社会貢献の視点を必ず含めること。
+- 誠実かつ専門的なトーンで記述すること。
+"""
+    return call_openai(prompt, model="gpt-4o", system_instruction=GENERATE_SYSTEM_PROMPT)
+
 def ai_improvement_suggestions(plan_text: str, knowledge_base: list = []) -> Optional[dict]:
     """誠実なAIによる総括的な改善提案"""
     system_prompt = """あなたは「誠実な経営軍師」です。
