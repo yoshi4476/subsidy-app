@@ -697,20 +697,227 @@ body {
 }
 
 /* ============================================================
-   レスポンシブ
+   モバイルヘッダー（デスクトップでは非表示）
    ============================================================ */
-@media (max-width: 768px) {
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d2137 100%);
+  color: white;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 150;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-menu-btn:hover,
+.mobile-menu-btn:active {
+  background: rgba(255,255,255,0.12);
+}
+
+.mobile-header-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.mobile-header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  object-fit: cover;
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 199;
+  animation: fadeOverlay 0.25s ease;
+}
+
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-close-btn {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.mobile-close-btn:active {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ============================================================
+   レスポンシブ: タブレット (1024px以下)
+   ============================================================ */
+@media (max-width: 1024px) {
   .sidebar {
-    display: none;
+    width: 220px;
   }
   .main-content {
-    margin-left: 0;
-    padding: 16px;
+    margin-left: 220px;
+    padding: 24px 20px;
   }
   .kpi-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
+}
+
+/* ============================================================
+   レスポンシブ: スマホ (768px以下) — 世界最高峰UI
+   ============================================================ */
+@media (max-width: 768px) {
+  /* モバイルヘッダーを表示 */
+  .mobile-header {
+    display: flex;
+  }
+
+  .mobile-overlay {
+    display: block;
+  }
+
+  .mobile-close-btn {
+    display: flex;
+  }
+
+  /* サイドバー: スライドイン */
+  .sidebar {
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 200;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /* メインコンテンツ */
+  .main-content {
+    margin-left: 0;
+    margin-top: 56px;
+    padding: 20px 16px;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ページヘッダー */
+  .page-header {
+    margin-bottom: 20px;
+  }
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  /* KPIカード */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    padding: 14px 16px;
+  }
+  .kpi-value {
+    font-size: 24px;
+  }
+  .kpi-label {
+    font-size: 11px;
+  }
+
+  /* カード */
+  .card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  /* テーブル横スクロール */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* チャット */
   .chat-container {
     grid-template-columns: 1fr;
+    height: calc(100vh - 76px);
+  }
+
+  /* ボタンのタッチ最適化 */
+  .btn {
+    padding: 12px 20px;
+    font-size: 15px;
+    min-height: 44px;
+  }
+  .btn-sm {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: 40px;
+  }
+
+  /* ツールチップ */
+  .tooltip-popup {
+    width: calc(100vw - 32px);
+    max-width: 320px;
+    left: 0;
+    transform: none;
+  }
+
+  /* グリッドレイアウトを単カラムに */
+  [style*="grid-template-columns: 1.5fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   レスポンシブ: 超小型スマホ (480px以下)
+   ============================================================ */
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi-value {
+    font-size: 28px;
+  }
+  .page-header h1 {
+    font-size: 20px;
+  }
+  .main-content {
+    padding: 16px 12px;
+  }
+  .sidebar {
+    width: 100%;
   }
 }

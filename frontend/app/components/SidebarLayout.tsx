@@ -83,6 +83,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const [selected, setSelected] = useState<Company | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -140,7 +141,36 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   return (
     <CompanyContext.Provider value={{ companies, selected, setSelected }}>
       <div className="app-layout">
-        <aside className="sidebar">
+        {/* モバイルヘッダー */}
+        <header className="mobile-header">
+          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)} aria-label="メニューを開く">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <span className="mobile-header-title">SubsidyNavi</span>
+          {session?.user?.image ? (
+            <img src={session.user.image} alt="" className="mobile-header-avatar" />
+          ) : (
+            <div className="mobile-header-avatar" style={{ background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
+              {session?.user?.name?.charAt(0) || "?"}
+            </div>
+          )}
+        </header>
+
+        {/* モバイルオーバーレイ */}
+        {isMobileMenuOpen && <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />}
+
+        <aside className={`sidebar ${isMobileMenuOpen ? "sidebar-open" : ""}`}>
+          {/* モバイル閉じるボタン */}
+          <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)} aria-label="メニューを閉じる">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
           {/* ロゴ */}
           <div className="sidebar-logo">
             <h1>SubsidyNavi</h1>
@@ -211,7 +241,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             <li className="sidebar-section-title">MAIN</li>
             {mainNav.map((item) => (
               <li key={item.href}>
-                <a href={item.href}>
+                <a href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d={icons[item.icon]} />
                   </svg>
