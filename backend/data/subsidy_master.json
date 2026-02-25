@@ -1,0 +1,487 @@
+[
+  {
+    "subsidy_code": "monodukuri_2026_18th",
+    "title": "ものづくり・商業・サービス生産性向上促進補助金（18次締切）",
+    "administering_body": "全国中小企業団体中央会",
+    "source_url": "https://portal.monodukuri-hojo.jp/common/files/koibo_18th_20240415.pdf",
+    "description": "中小企業等が行う革新的な製品・サービスの開発、生産プロセス等の省力化に必要な設備投資等を支援する補助金。",
+    "simple_summary": "新しい製品・サービスを作ったり、作業を効率化するための設備を買う費用の最大2/3（上限1,250万円）を国が支援してくれる制度です。たとえば、新しい機械を導入して生産性を上げたい、新サービスを始めたい場合に使えます。ただし、従業員の給料を毎年1.5%以上上げる計画が必要です。",
+    "exclusive_rule": "同一の設備・システムに対して、IT導入補助金や省力化投資補助金との併用はできません。また、同一の事業計画で他の国庫補助金を受けている経費は対象外です。",
+    "related_company_warning": "親会社・子会社・グループ会社など、資本関係や役員の兼任がある企業同士で同一公募回に申請した場合、審査で減点されるリスクがあります。みなし同一法人として一方の申請が却下されることもあります。",
+    "application_template": [
+      {
+        "section": "1. 企業概要",
+        "guide": "会社名、所在地、設立年、従業員数、売上高、主な事業内容を記載",
+        "example": "株式会社○○製作所、東京都大田区○○、設立2005年、従業員25名、年商3億円、精密金属加工業",
+        "max_chars": 800
+      },
+      {
+        "section": "2. 具体的取組内容",
+        "guide": "導入する設備・システムの名称、スペック、メーカー名。なぜこの設備を選んだか、代替案と比較してどう優れるかを記載",
+        "example": "5軸マシニングセンタ（○○社製 型番XX-500）を1台導入。従来の3軸加工では不可能だった複雑形状の一貫加工が可能になり、外注費を年間500万円削減できる。",
+        "max_chars": 3000
+      },
+      {
+        "section": "3. 将来の展望（市場ニーズ・市場規模）",
+        "guide": "ターゲット市場のデータ（市場規模、成長率）を外部データで裏付け。どの顧客にどう売るかを具体的に",
+        "example": "航空機部品市場は年率8%成長（出典：矢野経済研究所2025）。当社の強みである精密加工技術を活かし、Tier2メーカー5社への新規提案を計画。",
+        "max_chars": 2000
+      },
+      {
+        "section": "4. 事業計画（数値目標）",
+        "guide": "付加価値額（＝営業利益＋人件費＋減価償却費）の3年分計画、給与支給総額の増加計画、売上目標を年度別に記載",
+        "example": "付加価値額: 1年目4,500万→2年目4,800万→3年目5,100万（年率平均4.2%増）。給与支給総額: 年率2.0%増。売上: 1年目3.2億→3年目3.8億。",
+        "max_chars": 2000
+      },
+      {
+        "section": "5. 実施体制・スケジュール",
+        "guide": "担当者名と役割、設備導入から稼働までのスケジュール（月単位）、研修計画を記載",
+        "example": "4月：設備発注→7月：設置・試運転→8月：操作研修（○○メーカー技術者指導・2日間）→9月：本格稼働開始",
+        "max_chars": 1500
+      },
+      {
+        "section": "6. 収益計画",
+        "guide": "投資額、売上計画、原価・経費計画、利益計画を年度別に記載。投資回収期間を明示",
+        "example": "投資額: 1,800万円（うち補助金1,200万円）。投資回収期間: 2.5年。3年目に営業利益率8%達成。",
+        "max_chars": 1500
+      }
+    ],
+    "requirements": {
+      "logic": "AND",
+      "rate_rules": [
+        {
+          "condition": { "field": "wage_raise_declared", "operator": "==", "value": true },
+          "new_numerator": 2,
+          "new_denominator": 3,
+          "description": "大幅賃上げ継続枠：給与総額を年率3%以上かつ最低賃金を地域別+50円以上にする計画を提出した場合、補助率が2/3に引き上げられます（通常1/2）。"
+        },
+        {
+          "condition": { "field": "certifications", "operator": "CONTAINS", "value": "再生事業者" },
+          "new_numerator": 2,
+          "new_denominator": 3,
+          "description": "再生事業者：経済産業省の再生支援を受けている場合、補助率が2/3となります。"
+        }
+      ],
+      "conditions": [
+        {
+          "field": "value_added_growth_rate",
+          "operator": ">=",
+          "value": 3.0,
+          "unit": "%/year",
+          "description": "付加価値額の年率平均3%以上の向上",
+          "simple_description": "会社が生み出す価値（営業利益＋人件費＋減価償却費）を毎年3%以上増やす計画が必要です",
+          "source_page": 8
+        },
+        {
+          "field": "wage_raise_rate",
+          "operator": ">=",
+          "value": 1.5,
+          "unit": "%/year",
+          "description": "給与支給総額の年率平均1.5%以上の向上",
+          "simple_description": "従業員全体の給料の合計を毎年1.5%以上増やす計画が必要です",
+          "source_page": 8
+        },
+        {
+          "field": "lowest_wage",
+          "operator": ">=",
+          "value": 1000,
+          "description": "事業場内最低賃金が地域別最低賃金+30円以上",
+          "simple_description": "一番低い時給の従業員でも、その地域の最低賃金より30円以上高い必要があります",
+          "source_page": 9
+        }
+      ]
+    },
+    "bonus_points": [
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "経営革新計画",
+        "points": 5,
+        "description": "経営革新計画の承認を受けている",
+        "simple_description": "都道府県に「経営革新計画」を提出して承認をもらっていると加点。申請前に1〜2ヶ月かかるので早めに準備しましょう。",
+        "difficulty": "MEDIUM",
+        "source_page": 15
+      },
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "事業継続力強化計画",
+        "points": 10,
+        "description": "事業継続力強化計画の認定を受けている",
+        "simple_description": "中小企業庁に「災害時の事業継続計画」を出して認定をもらっていると加点。比較的取りやすい加点項目です。",
+        "difficulty": "EASY",
+        "source_page": 15
+      },
+      {
+        "field": "wage_raise_declared",
+        "operator": "==",
+        "value": true,
+        "points": 10,
+        "description": "賃上げ加点（給与支給総額+6%以上）",
+        "simple_description": "従業員の給料を合計6%以上上げる宣言をすると追加で加点されます。達成義務があるので注意。",
+        "difficulty": "MEDIUM",
+        "source_page": 16
+      },
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "パートナーシップ構築宣言",
+        "points": 5,
+        "description": "パートナーシップ構築宣言を登録している",
+        "simple_description": "下請け企業との適正な取引を宣言する制度.Webで簡単に登録できる加点項目です。",
+        "difficulty": "EASY",
+        "source_page": 16
+      }
+    ],
+    "subsidy_rate_numerator": 1,
+    "subsidy_rate_denominator": 2,
+    "max_amount": 12500000,
+    "eligible_costs": [
+      "機械装置・システム構築費",
+      "技術導入費",
+      "専門家経費",
+      "運搬費",
+      "クラウドサービス利用費"
+    ],
+    "announcement_date": "2026-02-10",
+    "application_start": "2026-02-20",
+    "application_end": "2026-04-15T17:00:00",
+    "project_end": "2027-03-31",
+    "target_region": "ALL",
+    "target_industries": "ALL",
+    "max_capital": 300000000,
+    "max_employees": 300,
+    "required_documents": [
+      { "name": "事業計画書", "format": "docx", "source_page": 20, "description": "上記テンプレートに沿って作成" },
+      { "name": "賃金引上げ計画の誓約書", "format": "pdf", "source_page": 21, "description": "最低賃金要件と給与増加計画の誓約" },
+      { "name": "決算書（直近2期分）", "format": "pdf", "source_page": 21, "description": "貸借対照表・損益計算書" },
+      { "name": "従業員名簿・賃金台帳", "format": "pdf", "description": "最低賃金要件の確認用" },
+      { "name": "見積書（導入設備）", "format": "pdf", "description": "2社以上から相見積もり推奨" }
+    ],
+    "parser_confidence": 0.95
+  },
+  {
+    "subsidy_code": "it_introduction_2026",
+    "title": "IT導入補助金2026（通常枠）",
+    "administering_body": "一般社団法人サービスデザイン推進協議会",
+    "source_url": "https://www.it-hojo.jp/h6/manual/pdf/public_offering_guidelines.pdf",
+    "description": "中小企業・小規模事業者等のITツール導入を支援し、業務効率化・売上向上を図る補助金。会計・受発注・決済・ECなど幅広く対象。",
+    "simple_summary": "会計ソフト、勤怠管理、ECサイト構築などのITツールを導入する費用の1/2（上限450万円）を国が支援してくれる制度です。たとえば、Excelでの手作業をクラウド型のシステムに切り替えたい場合に使えます。カタログに載っているIT製品から選ぶ方式です。",
+    "exclusive_rule": "IT導入補助金で導入したソフトウェアやハードウェアと同一のものを、ものづくり補助金や省力化投資補助金で重複して申請することはできません。同一の業務プロセスに対する別補助金との併用も不可です。",
+    "related_company_warning": "親会社・子会社・関連会社が同一のIT導入支援事業者を通じて同時に申請すると、審査で不利になる可能性があります。グループ内で情報共有し、申請時期をずらすことを推奨します。",
+    "application_template": [
+      {
+        "section": "1. 会社概要",
+        "guide": "事業内容、従業員数、売上高、現在のIT活用状況を記載",
+        "example": "従業員8名の飲食店チェーン。現在はExcelで売上管理、紙のタイムカードで勤怠管理を実施。",
+        "max_chars": 500
+      },
+      {
+        "section": "2. 導入するITツールの説明",
+        "guide": "選定したITツール名、主な機能、なぜこのツールを選んだかの理由、IT導入支援事業者名を記載",
+        "example": "○○クラウド勤怠管理（○○社製）を導入。GPS打刻対応で、複数店舗の勤怠を本部で一元管理可能。他のツール3種と比較検討した結果、当社の業態に最も適合。",
+        "max_chars": 1500
+      },
+      {
+        "section": "3. 導入前後の業務フロー比較",
+        "guide": "「今の作業」と「導入後の作業」を図や表で比較。削減される作業時間や工数を数値で明示",
+        "example": "【現在】タイムカード集計→Excel入力→給与計算：月40時間 → 【導入後】自動集計→給与ソフト連携：月8時間（80%削減）",
+        "max_chars": 2000
+      },
+      {
+        "section": "4. スケジュール",
+        "guide": "ITツールの導入〜運用開始までの計画（月単位）",
+        "example": "4月：ツール契約→5月：初期設定・データ移行→6月：研修実施→7月：本稼働",
+        "max_chars": 800
+      }
+    ],
+    "requirements": {
+      "logic": "AND",
+      "rate_rules": [
+        {
+          "condition": { "field": "sales_reduction_rate", "operator": ">=", "value": 10.0 },
+          "new_numerator": 2,
+          "new_denominator": 3,
+          "description": "インボイス枠（電子取引類型）：インボイス制度対応のために導入し、かつ売上が減少している場合、補助率が2/3〜4/5まで引き上げられる枠があります。"
+        }
+      ],
+      "conditions": [
+        {
+          "field": "employee_count_regular",
+          "operator": "<=",
+          "value": 300,
+          "description": "常時使用する従業員数が300人以下",
+          "simple_description": "従業員300人以下の会社が対象です",
+          "source_page": 5
+        },
+        {
+          "field": "capital_stock",
+          "operator": "<=",
+          "value": 300000000,
+          "description": "資本金3億円以下",
+          "simple_description": "資本金が3億円以下の会社が対象です",
+          "source_page": 5
+        }
+      ]
+    },
+    "bonus_points": [
+      {
+        "field": "wage_raise_declared",
+        "operator": "==",
+        "value": true,
+        "points": 10,
+        "description": "賃上げ目標を表明している",
+        "simple_description": "従業員の賃上げ計画を宣言すると加点されます",
+        "difficulty": "MEDIUM"
+      },
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "セキュリティアクション",
+        "points": 5,
+        "description": "SECURITY ACTIONを宣言している",
+        "simple_description": "情報セキュリティ対策を宣言する制度。必須要件です。IPAのサイトから無料で登録できます。",
+        "difficulty": "EASY"
+      }
+    ],
+    "subsidy_rate_numerator": 1,
+    "subsidy_rate_denominator": 2,
+    "max_amount": 4500000,
+    "eligible_costs": [
+      "ソフトウェア購入費",
+      "クラウド利用料（最大2年分）",
+      "導入関連費"
+    ],
+    "announcement_date": "2026-01-15",
+    "application_start": "2026-02-01",
+    "application_end": "2026-03-31T17:00:00",
+    "target_region": "ALL",
+    "target_industries": "ALL",
+    "max_capital": 300000000,
+    "max_employees": 300,
+    "required_documents": [
+      { "name": "履歴事項全部証明書", "format": "pdf", "description": "法務局で取得（発行3ヶ月以内）" },
+      { "name": "直近の法人税の納税証明書", "format": "pdf", "description": "税務署で取得" },
+      { "name": "ITツール導入計画書", "format": "docx", "description": "上記テンプレートに沿って作成" },
+      { "name": "SECURITY ACTION宣言確認画面", "format": "pdf", "description": "IPAのサイトから取得" },
+      { "name": "gBizIDプライムアカウント", "format": "other", "description": "申請に必須、取得に2週間程度かかるため早めに" }
+    ],
+    "parser_confidence": 0.92
+  },
+  {
+    "subsidy_code": "shokibo_jizokuka_2026",
+    "title": "小規模事業者持続化補助金（一般型・賃上げ枠等）",
+    "administering_body": "日本商工会議所 / 全国商工会連合会",
+    "source_url": "https://www.shokokai.or.jp/jizokuka_r1h/files/koubo_r3h_general.pdf",
+    "description": "小規模事業者が経営計画を策定し、販路拡大等に取り組む費用を支援。「一般枠」のほか、「賃上げ枠」「卒業枠」「後継者支援枠」「創業枠」などの特別枠が存在します。",
+    "simple_summary": "小さな会社や個人事業主が新しいお客さんを見つけるための取り組みに使える補助金です。チラシ作成、HP開設、店舗改装などの費用の2/3（通常は上限50万円）が支援されます。さらに、従業員の賃上げや創業などの条件を満たす「特別枠」で申請できれば、上限が200万円にアップします。",
+    "exclusive_rule": "小規模持続化補助金で補助を受けた経費と同一の経費を、IT導入補助金やものづくり補助金で重複して申請することはできません。連続する公募回での採択は優先度が下がります。過去3年以内に採択された場合は減点対象となります。",
+    "related_company_warning": "代表者が同一、または実質的に同一とみなされる事業者が重複して申請する場合、審査対象外となる可能性があります。個人事業主の方で複数の屋号をお持ちの場合は特にご注意ください。",
+    "application_template": [
+      {
+        "section": "様式2: 経営計画書",
+        "guide": "①企業概要（沿革、経営状況）②顧客ニーズと市場の動向 ③自社の強み ④経営方針・目標 を記載",
+        "example": "【自社の強み】創業40年の和菓子製造技術。地元産素材へのこだわり。固定客200名のリスト保有。【市場動向】EC市場は年率10%成長（経産省調査）。地方銘菓のお取り寄せ需要が拡大中。",
+        "max_chars": 2000
+      },
+      {
+        "section": "様式3: 補助事業計画書",
+        "guide": "①補助事業で行う取り組み内容 ②販路開拓の具体策 ③業務効率化の計画 ④数値目標 を記載",
+        "example": "ECサイトを構築し、Instagram広告と連動した全国販売を開始。月間売上30万円を目標。ターゲット：30-40代女性、手土産需要。",
+        "max_chars": 2000
+      }
+    ],
+    "requirements": {
+      "logic": "AND",
+      "rate_rules": [
+        {
+          "condition": { "field": "wage_raise_declared", "operator": "==", "value": true },
+          "new_numerator": 3,
+          "new_denominator": 4,
+          "description": "賃上げ加点（赤字事業者）：賃上げを表明し、かつ現在赤字（営業利益がマイナス）の事業者の場合、補助率が3/4に引き上げられます。"
+        }
+      ],
+      "conditions": [
+        {
+          "field": "employee_count_regular",
+          "operator": "<=",
+          "value": 20,
+          "description": "商業・サービス業は5人以下、それ以外は20人以下",
+          "simple_description": "従業員が20人以下（お店やサービス業は5人以下）の小さな会社・個人事業主が対象です",
+          "source_page": 3
+        },
+        {
+          "field": "capital_stock",
+          "operator": "<=",
+          "value": 50000000,
+          "description": "資本金5,000万円以下（実質的に中小企業）",
+          "simple_description": "資本金5,000万円以下であることが必要です",
+          "source_page": 3
+        }
+      ]
+    },
+    "bonus_points": [
+      {
+        "field": "wage_raise_declared",
+        "operator": "==",
+        "value": true,
+        "points": 10,
+        "description": "賃上げ枠（事業場内最低賃金を+30円以上）",
+        "simple_description": "従業員の最低賃金を30円以上上げる計画があると「賃上げ枠」で申請でき、補助上限が通常50万円から200万円にアップします",
+        "difficulty": "MEDIUM"
+      },
+      {
+        "field": "employee_count_regular",
+        "operator": ">=",
+        "value": 20,
+        "points": 5,
+        "description": "卒業枠候補",
+        "simple_description": "事業規模を拡大し、小規模事業者の定義（20人等）を超える計画の場合、「卒業枠」として上限が200万円に上がります",
+        "difficulty": "HARD"
+      },
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "経営力向上計画",
+        "points": 3,
+        "description": "経営力向上計画の認定を受けている",
+        "simple_description": "国の認定を受けていると加点対象になります",
+        "difficulty": "MEDIUM",
+        "source_page": 24
+      }
+    ],
+    "subsidy_rate_numerator": 2,
+    "subsidy_rate_denominator": 3,
+    "max_amount": 2000000,
+    "eligible_costs": [
+      "機械装置費",
+      "広報費",
+      "ウェブサイト関連費",
+      "展示会出展費",
+      "旅費",
+      "開発費",
+      "資料購入費",
+      "借料",
+      "設備処分費",
+      "委託・外注費"
+    ],
+    "announcement_date": "2025-12-20",
+    "application_start": "2026-01-10",
+    "application_end": "2026-02-28T17:00:00",
+    "target_region": "ALL",
+    "target_industries": "ALL",
+    "max_capital": 50000000,
+    "max_employees": 20,
+    "required_documents": [
+      { "name": "経営計画書兼補助事業計画書（様式2・3）", "format": "docx", "description": "上記テンプレートに沿って作成" },
+      { "name": "直近の確定申告書", "format": "pdf", "description": "個人：確定申告書B、法人：法人税申告書" },
+      { "name": "商工会議所の推薦書（様式4）", "format": "pdf", "description": "管轄の商工会議所で発行してもらう" },
+      { "name": "見積書", "format": "pdf", "description": "補助対象経費の見積書" }
+    ],
+    "parser_confidence": 0.93
+  },
+  {
+    "subsidy_code": "shoryokuka_toushi_2026",
+    "title": "中小企業省力化投資補助金",
+    "administering_body": "中小企業庁",
+    "source_url": "https://shoryokuka.smrj.go.jp/files/koubo.pdf",
+    "description": "人手不足に悩む中小企業等に対し、IoT・ロボット等の効果的な汎用製品の導入を支援する補助金。カタログ型。",
+    "simple_summary": "レジの自動清算機、配膳ロボット、清掃ロボットなど、人手不足を解消するための機器を導入する費用の1/2（上限1,500万円）を支援してくれる制度です。あらかじめ国がリストアップした製品の中から選ぶ「カタログ型」の補助金で、手続きが比較的シンプルです。",
+    "exclusive_rule": "省力化投資補助金のカタログ掲載製品と同一の製品や設備を、ものづくり補助金やIT導入補助金で重複して申請することはできません。同一の工程・業務に対する別補助金での設備導入も併用不可です。",
+    "related_company_warning": "同一の代表者が経営する複数法人での申請、またはグループ企業内での同一製品カテゴリの複数申請は、審査で大幅に減点されます。事前にグループ内で調整してください。",
+    "application_template": [
+      {
+        "section": "1. 企業情報",
+        "guide": "会社名、業種、従業員数、現在の人手不足状況を記載",
+        "example": "飲食店（イタリアン）、従業員6名（うちパート3名）。ランチ・ディナー営業で常にホール人員不足。",
+        "max_chars": 500
+      },
+      {
+        "section": "2. 導入する省力化製品",
+        "guide": "カタログから選定した製品名、型番、メーカー、導入台数を記載",
+        "example": "自動精算機 ○○社製 QR-500（1台）。カタログ登録番号：SRK-2026-0123",
+        "max_chars": 800
+      },
+      {
+        "section": "3. 省力化効果の説明",
+        "guide": "現在の作業工程と時間を計測し、導入後の削減効果を数値で示す",
+        "example": "【現在】レジ対応：来客1人あたり平均3分→1日120件で360分。【導入後】自動精算で1人あたり30秒→60分。1日300分（5時間）の削減。ホール要員を1名削減可能。",
+        "max_chars": 1500
+      },
+      {
+        "section": "4. 賃上げ計画",
+        "guide": "従業員の賃金改善計画を記載（補助額の上限に影響）",
+        "example": "最低賃金を時給50円引き上げ、正社員の月給を3%増額する計画。",
+        "max_chars": 500
+      }
+    ],
+    "requirements": {
+      "logic": "AND",
+      "rate_rules": [
+        {
+          "condition": { "field": "wage_raise_declared", "operator": "==", "value": true },
+          "new_numerator": 1,
+          "new_denominator": 2,
+          "description": "賃上げ要件：賃上げ計画を達成した場合、補助上限額が引き上げられます（率は1/2のまま）。"
+        }
+      ],
+      "conditions": [
+        {
+          "field": "employee_count_regular",
+          "operator": "<=",
+          "value": 300,
+          "description": "中小企業者であること",
+          "simple_description": "従業員300人以下の中小企業が対象です",
+          "source_page": 4
+        },
+        {
+          "field": "capital_stock",
+          "operator": "<=",
+          "value": 300000000,
+          "description": "資本金3億円以下",
+          "simple_description": "資本金3億円以下の会社が対象です",
+          "source_page": 4
+        }
+      ]
+    },
+    "bonus_points": [
+      {
+        "field": "wage_raise_declared",
+        "operator": "==",
+        "value": true,
+        "points": 10,
+        "description": "賃上げ加点",
+        "simple_description": "従業員の賃上げ計画があると、補助上限額が引き上げられます",
+        "difficulty": "MEDIUM"
+      },
+      {
+        "field": "certifications",
+        "operator": "CONTAINS",
+        "value": "事業継続力強化計画",
+        "points": 5,
+        "description": "事業継続力強化計画認定",
+        "simple_description": "災害対策の計画を認定してもらっていると加点",
+        "difficulty": "EASY"
+      }
+    ],
+    "subsidy_rate_numerator": 1,
+    "subsidy_rate_denominator": 2,
+    "max_amount": 15000000,
+    "eligible_costs": ["カタログ掲載製品購入費", "導入経費"],
+    "announcement_date": "2025-11-01",
+    "application_start": "2025-12-01",
+    "application_end": "2026-05-31T17:00:00",
+    "target_region": "ALL",
+    "target_industries": "ALL",
+    "max_capital": 300000000,
+    "max_employees": 300,
+    "required_documents": [
+      { "name": "導入計画書", "format": "docx", "description": "上記テンプレートに沿って作成" },
+      { "name": "カタログ製品選定書", "format": "pdf", "description": "カタログ掲載製品であることの確認書類" },
+      { "name": "決算書（直近1期分）", "format": "pdf", "description": "貸借対照表・損益計算書" },
+      { "name": "労働者名簿", "format": "pdf", "description": "従業員数の確認用" },
+      { "name": "省力化効果計測データ", "format": "pdf", "description": "現在の作業時間の計測記録" }
+    ],
+    "parser_confidence": 0.94
+  }
+]
