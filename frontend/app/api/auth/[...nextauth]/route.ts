@@ -25,6 +25,15 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      const email = user.email?.toLowerCase().trim();
+      const SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com".toLowerCase();
+
+      // 超強力な先行プロモーション (フロントエンド側でも即座に判定)
+      if (email === SUPER_ADMIN_EMAIL) {
+        (user as any).role = "admin";
+        (user as any).is_approved = true;
+      }
+
       try {
         // バックエンドにユーザー情報を送信してDBに記録/取得
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081"}/api/users/`, {
@@ -44,18 +53,38 @@ const handler = NextAuth({
           (user as any).role = dbUser.role;
           (user as any).is_approved = dbUser.is_approved;
         }
+
+        // バックエンドが失敗しても、最高管理者は通す
+        if (email === SUPER_ADMIN_EMAIL) {
+          (user as any).role = "admin";
+          (user as any).is_approved = true;
+        }
         return true;
       } catch (e) {
         console.error("ユーザー登録エラー:", e);
-        return true; // ログイン自体は許可（デバッグ・運用方針次第）
+        // エラー時も最高管理者は通す
+        if (email === SUPER_ADMIN_EMAIL) {
+          (user as any).role = "admin";
+          (user as any).is_approved = true;
+        }
+        return true; 
       }
     },
     async session({ session, token }) {
       if (session.user) {
+        const email = session.user.email?.toLowerCase().trim();
+        const SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com".toLowerCase();
+
         // トークンからセッションに値を移譲
         (session.user as any).id = token.sub; 
         (session.user as any).role = token.role;
         (session.user as any).is_approved = token.is_approved;
+
+        // God Mode 再適用
+        if (email === SUPER_ADMIN_EMAIL) {
+          (session.user as any).role = "admin";
+          (session.user as any).is_approved = true;
+        }
       }
       return session;
     },
@@ -64,6 +93,12 @@ const handler = NextAuth({
         token.sub = user.id;
         token.role = (user as any).role;
         token.is_approved = (user as any).is_approved;
+      }
+
+      // God Mode トークンレベル適用
+      if (token.email?.toLowerCase().trim() === "y.wakata.linkdesign@gmail.com".toLowerCase()) {
+        token.role = "admin";
+        token.is_approved = true;
       }
       return token;
     }

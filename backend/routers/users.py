@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/users", tags=["ユーザー管理"])
 @router.post("/", response_model=UserResponse)
 def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
     """Googleログイン時のユーザー情報をもとに、DBにユーザーが存在しなければ作成し、存在すれば返す"""
-    email_lower = data.email.lower()
+    email_lower = data.email.lower().strip()
     user = db.query(User).filter(User.email.ilike(email_lower)).first()
     
     # 最高管理者のメールアドレス (小文字で比較)
