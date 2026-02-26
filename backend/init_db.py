@@ -1,7 +1,14 @@
-# Compatibility dummy file to satisfy Railway's old start commands
-import os
+# Database initialization script
+from database import engine, Base
+import models
+
+def main():
+    print("[INFO] Initializing database tables...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("[SUCCESS] Database tables created successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to create tables: {e}")
 
 if __name__ == "__main__":
-    print("[INFO] Compatibility init_db.py started.")
-    # 必要であればここでテーブル作成を呼び出すことも可能
-    print("[INFO] Database initialization bypass initiated.")
+    main()
