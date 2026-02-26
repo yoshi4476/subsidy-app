@@ -328,8 +328,8 @@ export default function CorporateDNAPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="year" tick={{ fontSize: 12, fill: "#718096" }} />
-                    <YAxis tick={{ fontSize: 12, fill: "#718096" }} tickFormatter={(v: number) => `${(v / 10000).toLocaleString()}万`} />
-                    <Tooltip formatter={(v: number) => `${v.toLocaleString()} 円`} />
+                    <YAxis tick={{ fontSize: 12, fill: "#718096" }} tickFormatter={(v: any) => `${((v || 0) / 10000).toLocaleString()}万`} />
+                    <Tooltip formatter={(v: any) => `${(v || 0).toLocaleString()} 円`} />
                     <Area type="monotone" dataKey="sales" stroke="#3182ce" strokeWidth={2} fill="url(#gradSales)" name="売上高" />
                     <Area type="monotone" dataKey="valueAdded" stroke="#38a169" strokeWidth={2} fill="url(#gradVA)" name="付加価値額" />
                   </AreaChart>
