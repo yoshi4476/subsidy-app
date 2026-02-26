@@ -34,24 +34,57 @@ export default function WaitingApprovalPage() {
 
         <div className="info-box">
           <div className="info-item">
-            <span className="label">ステータス</span>
-            <span className="value status-pending">確認中</span>
+            <span className="label">現在のステータス</span>
+            <span className="value status-pending">承認待ち</span>
           </div>
           <div className="info-item">
-            <span className="label">ユーザー</span>
+            <span className="label">ログイン中のメール</span>
             <span className="value">{session?.user?.email}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">現在のロール</span>
+            <span className="value">{(session?.user as any)?.role || "client"}</span>
           </div>
         </div>
 
         <div className="footer-actions">
-          <p>お急ぎの場合は担当者までお問い合わせください。</p>
+           <p className="debug-note">※最高管理者のメールアドレスでログインしている場合は、下のボタンを押して再ログインをお試しください。</p>
+          <button 
+            onClick={() => signOut({ callbackUrl: "/auth/login" })} 
+            className="btn-primary-glow"
+            style={{ marginBottom: '1rem' }}
+          >
+            権限を反映させる（再ログイン）
+          </button>
           <button onClick={() => signOut({ callbackUrl: "/" })} className="btn-secondary">
-            ログアウトして戻る
+            戻る
           </button>
         </div>
       </div>
 
       <style jsx>{`
+        .debug-note {
+          font-size: 0.75rem !important;
+          color: #ef4444 !important;
+          margin-bottom: 0.5rem !important;
+          font-weight: 600;
+        }
+        .btn-primary-glow {
+          background: linear-gradient(135deg, #6366f1, #a855f7);
+          color: white;
+          border: none;
+          padding: 1rem 2rem;
+          border-radius: 1rem;
+          font-weight: 700;
+          cursor: pointer;
+          width: 100%;
+          transition: all 0.3s;
+          box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+        .btn-primary-glow:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        }
         .waiting-container {
           min-height: 100vh;
           display: flex;

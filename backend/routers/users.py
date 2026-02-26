@@ -9,14 +9,18 @@ router = APIRouter(prefix="/api/users", tags=["ユーザー管理"])
 @router.post("/", response_model=UserResponse)
 def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
     """Googleログイン時のユーザー情報をもとに、DBにユーザーが存在しなければ作成し、存在すれば返す"""
-    user = db.query(User).filter(User.email == data.email).first()
+    email_lower = data.email.lower()
+    user = db.query(User).filter(User.email.ilike(email_lower)).first()
     
-    # 最高管理者のメールアドレス
-    SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com"
+    # 最高管理者のメールアドレス (小文字で比較)
+    SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com".lower()
+    
+    print(f"[AUTH_DEBUG] Incoming login: {email_lower}")
     
     if user:
         # 最高管理者の場合は常に管理者ロールと承認済み状態を維持
-        if user.email == SUPER_ADMIN_EMAIL:
+        if user.email.lower() == SUPER_ADMIN_EMAIL:
+            print(f"[AUTH_DEBUG] Super Admin detected (existing): {user.email}")
             user.role = "admin"
             user.is_approved = True
             
@@ -30,7 +34,10 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
         return user
     
     # Create new user
-    is_super = data.email == SUPER_ADMIN_EMAIL
+    is_super = email_lower == SUPER_ADMIN_EMAIL
+    if is_super:
+        print(f"[AUTH_DEBUG] Super Admin detected (new): {email_lower}")
+        
     new_user = User(
         email=data.email,
         name=data.name,
