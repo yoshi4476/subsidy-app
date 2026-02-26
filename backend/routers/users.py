@@ -11,7 +11,15 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
     """Googleログイン時のユーザー情報をもとに、DBにユーザーが存在しなければ作成し、存在すれば返す"""
     user = db.query(User).filter(User.email == data.email).first()
     
+    # 最高管理者のメールアドレス
+    SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com"
+    
     if user:
+        # 最高管理者の場合は常に管理者ロールと承認済み状態を維持
+        if user.email == SUPER_ADMIN_EMAIL:
+            user.role = "admin"
+            user.is_approved = True
+            
         # Update name and picture if changed
         if data.name and user.name != data.name:
             user.name = data.name
@@ -22,11 +30,13 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
         return user
     
     # Create new user
+    is_super = data.email == SUPER_ADMIN_EMAIL
     new_user = User(
         email=data.email,
         name=data.name,
         picture=data.picture,
-        role="client"
+        role="admin" if is_super else "client",
+        is_approved=True if is_super else False
     )
     db.add(new_user)
     db.commit()
