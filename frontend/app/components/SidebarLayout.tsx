@@ -138,6 +138,23 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
   const isAdmin = (session?.user as any)?.role === "admin";
 
+  // ログイン画面と承認待ち画面ではサイドバーを出さない
+  const isAuthPage = pathname === "/auth/login";
+  const isWaitingPage = pathname === "/waiting-approval";
+  const isNoLayoutPage = isAuthPage || isWaitingPage;
+
+  if (!mounted) return null;
+
+  if (isNoLayoutPage) {
+    return (
+      <CompanyContext.Provider value={{ companies, selected, setSelected }}>
+        <main className="main-content-no-sidebar" style={{ width: '100vw', padding: 0 }}>
+          {children}
+        </main>
+      </CompanyContext.Provider>
+    );
+  }
+
   return (
     <CompanyContext.Provider value={{ companies, selected, setSelected }}>
       <div className="app-layout">

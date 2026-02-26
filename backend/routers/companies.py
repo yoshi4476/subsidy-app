@@ -14,7 +14,9 @@ from schemas import (
     CorporateDNAUpsert, CorporateDNAResponse,
 )
 
-router = APIRouter(prefix="/api/companies", tags=["企業管理"])
+from security import get_current_approved_user
+
+router = APIRouter(prefix="/api/companies", tags=["企業管理"], dependencies=[Depends(get_current_approved_user)])
 
 
 # ============================================================
