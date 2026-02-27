@@ -13,8 +13,13 @@ class UserCreate(BaseModel):
     id: Optional[str] = None
     email: str
     name: Optional[str] = None
-    picture: Optional[str] = None
+    model_config = {"from_attributes": True}
 
+class UserResponse(UserCreate):
+    id: str
+    role: str
+    is_approved: bool
+    created_at: datetime
     model_config = {"from_attributes": True}
 
 
