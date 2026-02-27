@@ -22,6 +22,14 @@ class UserResponse(UserCreate):
     created_at: datetime
     model_config = {"from_attributes": True}
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class PasswordSetRequest(BaseModel):
+    email: str
+    password: str
+
 
 # ============================================================
 # 招待 (Invitation)

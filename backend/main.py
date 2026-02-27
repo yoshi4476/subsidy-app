@@ -4,7 +4,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base, SessionLocal
-from routers import companies, subsidies, applications, documents, qa, rag_knowledge, users, user_activity, simulation, admin, terms
+from routers import companies, subsidies, applications, documents, qa, rag_knowledge, users, user_activity, simulation, admin, terms, auth
 from routers import ai_router
 import traceback
 from fastapi import Request
@@ -103,6 +103,7 @@ app.include_router(user_activity.router)
 app.include_router(simulation.router)
 app.include_router(admin.router)
 app.include_router(terms.router)
+app.include_router(auth.router)
 
 
 @app.get("/")

@@ -11,15 +11,33 @@ const handler = NextAuth({
       checks: ["pkce", "state"],
     }),
     CredentialsProvider({
-      name: "Demo Login",
+      name: "Password Login",
       credentials: {
-        email: { label: "Email", type: "text", placeholder: "test@example.com" },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (credentials?.email === "test@example.com") {
-          return { id: "183b5492-9b65-4e22-8360-330b7911c3d8", name: "テスト部長", email: "test@example.com" };
+        if (!credentials?.email || !credentials?.password) return null;
+
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081"}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          });
+
+          if (res.ok) {
+            const user = await res.json();
+            return user;
+          }
+          return null;
+        } catch (e) {
+          console.error("Login authorization error:", e);
+          return null;
         }
-        return null;
       }
     }),
   ],

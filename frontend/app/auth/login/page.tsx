@@ -5,6 +5,29 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [isHovered, setIsHovered] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<"google" | "password">("google");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: true,
+      callbackUrl: "/",
+    });
+
+    if (result?.error) {
+      setError("メールアドレスまたはパスワードが正しくありません。");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="login-container">
@@ -30,27 +53,72 @@ export default function LoginPage() {
 
           <div className="login-content">
             <h2>未来の補助金体験へ、ようこそ。</h2>
-            <p className="login-desc">
-              AIがあなたのビジネスに最適な補助金を導き出します。<br />
-              一歩先を行く、次世代の申請プラットフォーム。
-            </p>
+            
+            {loginMethod === "google" ? (
+              <>
+                <p className="login-desc">
+                  AIがあなたのビジネスに最適な補助金を導き出します。<br />
+                  一歩先を行く、次世代の申請プラットフォーム。
+                </p>
 
-            <button 
-              className={`login-btn-premium ${isHovered ? 'hovered' : ''}`}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              onClick={() => signIn("google", { callbackUrl: "/" })}
-            >
-              <div className="btn-inner">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                <span>Googleアカウントでログイン</span>
-              </div>
-            </button>
+                <button 
+                  className={`login-btn-premium ${isHovered ? 'hovered' : ''}`}
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  onClick={() => signIn("google", { callbackUrl: "/" })}
+                >
+                  <div className="btn-inner">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span>Googleでログイン</span>
+                  </div>
+                </button>
+
+                <button className="switch-method-btn" onClick={() => setLoginMethod("password")}>
+                  メールアドレスでログイン
+                </button>
+              </>
+            ) : (
+              <form onSubmit={handlePasswordLogin} className="password-login-form">
+                <div className="input-field">
+                  <input 
+                    type="email" 
+                    placeholder="メールアドレス" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required 
+                  />
+                </div>
+                <div className="input-field">
+                  <input 
+                    type="password" 
+                    placeholder="パスワード" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                  />
+                </div>
+                
+                {error && <p className="error-message">{error}</p>}
+                
+                <button type="submit" className="login-btn-submit" disabled={loading}>
+                  {loading ? "ログイン中..." : "ログイン"}
+                </button>
+
+                <div className="secondary-actions">
+                  <button type="button" className="switch-method-btn" onClick={() => setLoginMethod("google")}>
+                    Googleログインに戻る
+                  </button>
+                  <a href="/auth/set-password" style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'none' }}>
+                    初めての方 / パスワード設定
+                  </a>
+                </div>
+              </form>
+            )}
           </div>
 
           <div className="login-footer">
@@ -243,6 +311,85 @@ export default function LoginPage() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .switch-method-btn {
+          margin-top: 1.5rem;
+          background: none;
+          border: none;
+          color: #a855f7;
+          font-weight: 600;
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+
+        .switch-method-btn:hover {
+          color: #c084fc;
+          text-decoration: underline;
+        }
+
+        .password-login-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .input-field input {
+          width: 100%;
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          color: white;
+          font-size: 1rem;
+          transition: all 0.2s;
+        }
+
+        .input-field input:focus {
+          outline: none;
+          border-color: #6366f1;
+          background: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .login-btn-submit {
+          width: 100%;
+          padding: 1rem;
+          background: linear-gradient(135deg, #6366f1, #a855f7);
+          border: none;
+          border-radius: 12px;
+          color: white;
+          font-weight: 700;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.3s;
+          margin-top: 0.5rem;
+        }
+
+        .login-btn-submit:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .login-btn-submit:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .error-message {
+          color: #fb7185;
+          font-size: 0.85rem;
+          font-weight: 500;
+          margin: 0;
+        }
+
+        .secondary-actions {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
         }
       `}</style>
     </div>
