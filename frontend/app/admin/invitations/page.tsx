@@ -47,6 +47,7 @@ export default function InvitationsPage() {
       const res = await fetch(targetUrl, {
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",
+          "X-User-Email": session?.user?.email || "",
         },
       });
       if (res.ok) {
@@ -78,6 +79,7 @@ export default function InvitationsPage() {
         headers: {
           "Content-Type": "application/json",
           "X-User-ID": (session?.user as any)?.id || "",
+          "X-User-Email": session?.user?.email || "",
         },
         body: JSON.stringify({ email }),
       });
@@ -107,6 +109,7 @@ export default function InvitationsPage() {
         method: "DELETE",
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",
+          "X-User-Email": session?.user?.email || "",
         },
       });
 

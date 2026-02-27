@@ -12,18 +12,31 @@ router = APIRouter(prefix="/api/admin", tags=["管理者機能"])
 # 権限チェック依存関係
 # ============================================================
 
-def check_admin(x_user_id: Optional[str] = Header(None, alias="X-User-ID"), db: Session = Depends(get_db)):
+def check_admin(
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    x_user_email: Optional[str] = Header(None, alias="X-User-Email"),
+    db: Session = Depends(get_db)
+):
     """ヘッダーからユーザーを特定し、管理者ロールを持っているかチェックする"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="認証が必要です (UserID Missing)")
+    if not x_user_id and not x_user_email:
+        raise HTTPException(status_code=401, detail="認証が必要です (UserID/Email Missing)")
     
     # God Mode 固定IDの直通
-    if x_user_id == "super-admin-fixed-id":
-        return User(id="super-admin-fixed-id", email="y.wakata.linkdesign@gmail.com", role="admin", is_approved=True)
+    SUPER_ADMIN_EMAIL = "y.wakata.linkdesign@gmail.com"
+    if x_user_id == "super-admin-fixed-id" or (x_user_email and x_user_email.lower().strip() == SUPER_ADMIN_EMAIL):
+        return User(id="super-admin-fixed-id", email=SUPER_ADMIN_EMAIL, role="admin", is_approved=True)
 
-    user = db.query(User).filter(User.id == x_user_id).first()
+    # まずIDで検索
+    user = None
+    if x_user_id:
+        user = db.query(User).filter(User.id == x_user_id).first()
+    
+    # IDで見つからなければメールで検索（Google OAuth IDとDB UUIDの不一致対策）
+    if not user and x_user_email:
+        user = db.query(User).filter(User.email.ilike(x_user_email.lower().strip())).first()
+
     if not user or user.role != "admin":
-        print(f"[AUTH_DEBUG] Admin check failed for ID: {x_user_id}")
+        print(f"[AUTH_DEBUG] Admin check failed - ID: {x_user_id}, Email: {x_user_email}")
         raise HTTPException(status_code=403, detail="管理者権限が必要です")
     return user
 
