@@ -159,7 +159,7 @@ def create_invitation(data: InvitationCreate, db: Session = Depends(get_db), adm
     
     return new_invitation
 
-@router.delete("/invitations/{invitation_id}")
+@router.delete("/invitations/{invitation_id}/")
 def delete_invitation(invitation_id: str, db: Session = Depends(get_db), admin: User = Depends(check_admin)):
     """招待を取り消す"""
     inv = db.query(Invitation).filter(Invitation.id == invitation_id).first()

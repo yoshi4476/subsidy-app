@@ -95,7 +95,8 @@ export default function InvitationsPage() {
     if (!confirm("この招待を取り消しますか？")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/admin/invitations/${id}`, {
+      const targetUrl = `${API_BASE}/admin/invitations/${id}/`;
+      const res = await fetch(targetUrl, {
         method: "DELETE",
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",
