@@ -10,6 +10,7 @@ interface Invitation {
   id: string;
   email: string;
   invited_by: string;
+  status: string;
   created_at: string;
 }
 
@@ -179,16 +180,22 @@ export default function InvitationsPage() {
             ) : (
               <table className="data-table">
                 <thead>
-                  <tr>
-                    <th>メールアドレス</th>
-                    <th>招待日</th>
-                    <th>アクション</th>
-                  </tr>
+                    <tr>
+                      <th>メールアドレス</th>
+                      <th>状態</th>
+                      <th>招待日</th>
+                      <th>アクション</th>
+                    </tr>
                 </thead>
                 <tbody>
                   {invitations.map((inv) => (
                     <tr key={inv.id}>
                       <td className="email-cell">{inv.email}</td>
+                      <td>
+                        <span className={`status-pill ${inv.status}`}>
+                          {inv.status === "accepted" ? "参加済み" : "招待中"}
+                        </span>
+                      </td>
                       <td className="date-cell">
                         <Clock size={14} style={{ marginRight: 4 }} />
                         {new Date(inv.created_at).toLocaleDateString("ja-JP")}
@@ -296,6 +303,20 @@ export default function InvitationsPage() {
           font-family: monospace;
           font-size: 0.8rem;
           border: 1px solid #334155;
+        }
+        .status-pill {
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        .status-pill.pending {
+          background: #fef3c7;
+          color: #92400e;
+        }
+        .status-pill.accepted {
+          background: #dcfce7;
+          color: #166534;
         }
         .email-cell {
           font-weight: 600;
