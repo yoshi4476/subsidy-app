@@ -42,7 +42,12 @@ export default function AdminSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`${API}/admin/settings`);
+      const res = await fetch(`${API}/admin/settings`, {
+        headers: {
+          "X-User-Email": session?.user?.email || "",
+          "X-User-ID": (session?.user as any)?.id || "",
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
@@ -65,7 +70,11 @@ export default function AdminSettingsPage() {
     try {
       const res = await fetch(`${API}/admin/settings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-Email": session?.user?.email || "",
+          "X-User-ID": (session?.user as any)?.id || "",
+        },
         body: JSON.stringify({ settings }),
       });
 
