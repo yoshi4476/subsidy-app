@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User, Invitation
-from schemas import UserCreate, UserResponse
+from schemas import UserCreate, UserResponse, UserUpdate, PasswordChangeRequest
 
 router = APIRouter(prefix="/api/users", tags=["ユーザー管理"])
 
