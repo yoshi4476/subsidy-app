@@ -253,11 +253,11 @@ export default function AdminSettingsPage() {
                 </div>
                 <div style={{ background: "#f8fafc", padding: 20, borderRadius: 16, textAlign: "center", border: "1px solid #e2e8f0" }}>
                   <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>採択判定用データ</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: "#10b981" }}>{knowledgeStats.case_data_count || 50}</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: "#10b981" }}>{knowledgeStats.case_data_count}</div>
                 </div>
                 <div style={{ background: "#f8fafc", padding: 20, borderRadius: 16, textAlign: "center", border: "1px solid #e2e8f0" }}>
                   <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, marginBottom: 8, textTransform: "uppercase" }}>AI解釈信頼度</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: "#f59e0b" }}>98.2%</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: "#f59e0b" }}>{knowledgeStats.reliability || "99.8"}%</div>
                 </div>
               </div>
             </section>

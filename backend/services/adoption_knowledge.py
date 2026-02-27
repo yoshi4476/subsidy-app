@@ -244,13 +244,18 @@ def get_knowledge_for_subsidy(subsidy_code: str) -> dict:
     }
     key = None
     for prefix, kb_key in code_mapping.items():
-        if subsidy_code and subsidy_code.startswith(prefix):
+        if subsidy_code and prefix in subsidy_code:
             key = kb_key
             break
 
     if key and key in ADOPTION_KNOWLEDGE_BASE:
         return ADOPTION_KNOWLEDGE_BASE[key]
-    return {}
+    
+    # フォールバック: エネルギー補助金などの新しいカテゴリへの対応
+    if "ENERGY" in (subsidy_code or ""):
+        return ADOPTION_KNOWLEDGE_BASE["shouryokuka"]
+        
+    return ADOPTION_KNOWLEDGE_BASE["monodzukuri"] # デフォルトで最も汎用的なものを返す
 
 
 def analyze_plan_against_knowledge(plan_text: str, subsidy_code: str) -> dict:
@@ -359,14 +364,36 @@ def get_adoption_tips(subsidy_code: str) -> list:
     return tips
 
 
-def get_all_knowledge_summary() -> list:
-    """全補助金のナレッジサマリーを取得"""
+def get_all_knowledge_summary(db: Optional[Session] = None) -> list:
+    """
+    全補助金のナレッジサマリーを取得
+    dbが渡された場合は、DB内の実際の補助金一覧をベースにサマリーを生成する
+    """
+    if not db:
+        # フォールバック: ハードコードされた基礎知識のみ返す
+        summary = []
+        for key, kb in ADOPTION_KNOWLEDGE_BASE.items():
+            summary.append({
+                "key": key,
+                "name": kb["name"],
+                "national_adoption_rate": kb["adoption_rate_national"],
+                "key_factor_count": len(kb.get("key_factors", [])),
+                "best_practice_count": len(kb.get("best_practices", [])),
+                "rejection_reason_count": len(kb.get("common_rejection_reasons", [])),
+            })
+        return summary
+
+    # DB内の補助金をベースに生成
+    from models import Subsidy
+    subsidies = db.query(Subsidy).all()
     summary = []
-    for key, kb in ADOPTION_KNOWLEDGE_BASE.items():
+    for s in subsidies:
+        # 対応するナレッジ項目を特定
+        kb = get_knowledge_for_subsidy(s.subsidy_code)
         summary.append({
-            "key": key,
-            "name": kb["name"],
-            "national_adoption_rate": kb["adoption_rate_national"],
+            "key": s.subsidy_code,
+            "name": s.title,
+            "national_adoption_rate": kb.get("adoption_rate_national", 0.5),
             "key_factor_count": len(kb.get("key_factors", [])),
             "best_practice_count": len(kb.get("best_practices", [])),
             "rejection_reason_count": len(kb.get("common_rejection_reasons", [])),
