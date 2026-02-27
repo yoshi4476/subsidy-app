@@ -99,6 +99,9 @@ const handler = NextAuth({
       if (token.email?.toLowerCase().trim() === "y.wakata.linkdesign@gmail.com".toLowerCase()) {
         token.role = "admin";
         token.is_approved = true;
+        if (!token.sub) {
+          token.sub = "super-admin-fixed-id"; // 固定ID
+        }
       }
       return token;
     }

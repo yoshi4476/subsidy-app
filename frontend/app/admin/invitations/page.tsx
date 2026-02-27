@@ -18,7 +18,19 @@ export default function InvitationsPage() {
   const [email, setEmail] = useState("");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: "success" | "error" | "warning"; text: string } | null>(null);
+
+  // API URLの妥当性チェック
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+      if (API_BASE.includes("localhost")) {
+        setMessage({ 
+          type: "warning", 
+          text: "警告: API接続先がlocalhostになっています。環境変数 NEXT_PUBLIC_API_URL を設定してください。" 
+        });
+      }
+    }
+  }, []);
 
   // 招待リストの読み込み
   const loadInvitations = async () => {
@@ -66,11 +78,13 @@ export default function InvitationsPage() {
         setEmail("");
         loadInvitations();
       } else {
-        const error = await res.json();
-        setMessage({ type: "error", text: error.detail || "招待に失敗しました。" });
+        const errorData = await res.json().catch(() => ({ detail: `HTTP ${res.status} Error` }));
+        console.error("Invitation failed:", errorData);
+        setMessage({ type: "error", text: errorData.detail || "招待に失敗しました。" });
       }
     } catch (e) {
-      setMessage({ type: "error", text: "エラーが発生しました。" });
+      console.error("Fetch error:", e);
+      setMessage({ type: "error", text: "エラーが発生しました（通信エラー）。" });
     }
   };
 
@@ -246,6 +260,11 @@ export default function InvitationsPage() {
           background: #fef2f2;
           color: #991b1b;
           border: 1px solid #fecaca;
+        }
+        .alert-banner.warning {
+          background: #fffbeb;
+          color: #92400e;
+          border: 1px solid #fef3c7;
         }
         .email-cell {
           font-weight: 600;

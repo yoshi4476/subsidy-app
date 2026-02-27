@@ -17,8 +17,13 @@ def check_admin(x_user_id: Optional[str] = Header(None, alias="X-User-ID"), db: 
     if not x_user_id:
         raise HTTPException(status_code=401, detail="認証が必要です (UserID Missing)")
     
+    # God Mode 固定IDの直通
+    if x_user_id == "super-admin-fixed-id":
+        return User(id="super-admin-fixed-id", email="y.wakata.linkdesign@gmail.com", role="admin", is_approved=True)
+
     user = db.query(User).filter(User.id == x_user_id).first()
     if not user or user.role != "admin":
+        print(f"[AUTH_DEBUG] Admin check failed for ID: {x_user_id}")
         raise HTTPException(status_code=403, detail="管理者権限が必要です")
     return user
 
