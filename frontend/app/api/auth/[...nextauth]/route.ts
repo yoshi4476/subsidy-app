@@ -70,22 +70,18 @@ const handler = NextAuth({
           (user as any).id = dbUser.id;
           (user as any).role = dbUser.role;
           (user as any).is_approved = dbUser.is_approved;
+          return true;
+        } else if (res.status === 403) {
+          // SaaS厳格モード: 招待されていない場合はログイン拒否
+          console.warn("ログイン拒否: 招待されていないユーザーです。");
+          return false; // Error pageへリダイレクト
         }
-
-        // バックエンドが失敗しても、最高管理者は通す
-        if (email === SUPER_ADMIN_EMAIL) {
-          (user as any).role = "admin";
-          (user as any).is_approved = true;
-        }
-        return true;
+        
+        // その他のエラー時は最高管理者は通す
+        return email === SUPER_ADMIN_EMAIL;
       } catch (e) {
         console.error("ユーザー登録エラー:", e);
-        // エラー時も最高管理者は通す
-        if (email === SUPER_ADMIN_EMAIL) {
-          (user as any).role = "admin";
-          (user as any).is_approved = true;
-        }
-        return true; 
+        return email === SUPER_ADMIN_EMAIL;
       }
     },
     async session({ session, token }) {

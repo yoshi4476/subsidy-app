@@ -40,14 +40,18 @@ def set_password(data: PasswordSetRequest, db: Session = Depends(get_db)):
         if user.hashed_password:
              raise HTTPException(status_code=400, detail="パスワードは既に設定されています")
         user.hashed_password = hashed
-        user.is_approved = True # 招待されているので承認
+        user.is_approved = True
+        user.plan_type = "paid"
+        user.subscription_status = "active"
     else:
         # 新規作成
         user = User(
             email=data.email,
             hashed_password=hashed,
             is_approved=True,
-            role="client"
+            role="client",
+            plan_type="paid",
+            subscription_status="active"
         )
         db.add(user)
     

@@ -27,6 +27,8 @@ class User(Base):
     picture = Column(String, nullable=True, comment="プロフィール画像URL")
     role = Column(String, default="client", comment="ロール: client, admin")
     hashed_password = Column(String, nullable=True, comment="ハッシュ化済みパスワード")
+    plan_type = Column(String, default="paid", comment="プラン: trial, paid, admin")
+    subscription_status = Column(String, default="active", comment="状態: active, expired")
     is_approved = Column(Boolean, default=False, comment="承認済みフラグ")
     created_at = Column(DateTime, default=datetime.utcnow)
 

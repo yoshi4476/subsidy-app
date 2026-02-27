@@ -20,6 +20,13 @@ def get_current_approved_user(current_user: Optional[User] = Depends(get_current
     if not current_user.is_approved and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="アカウントの承認が完了していません")
     
+    # 【SaaS厳格化】管理以外で、支払い期限が切れている場合は遮断
+    if current_user.role != "admin" and current_user.subscription_status == "expired":
+        raise HTTPException(
+            status_code=403, 
+            detail="プランの有効期限が切れています。継続するにはお支払い手続きが必要です。"
+        )
+    
     return current_user
 
 def get_current_admin(current_user: Optional[User] = Depends(get_current_user)):

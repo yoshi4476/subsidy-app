@@ -41,18 +41,28 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
     is_super = email_lower == SUPER_ADMIN_EMAIL
     if is_super:
         print(f"[AUTH_DEBUG] Super Admin detected (new): {email_lower}")
+    
+    # 【SaaS厳格化】最高管理者でもなく、招待もされていない場合は、アカウント作成を拒否
+    if not is_super and not is_invited:
+        print(f"[AUTH_DEBUG] Access Denied: {email_lower} is not invited.")
+        raise HTTPException(
+            status_code=403, 
+            detail="このメールアドレスは招待されていません。管理者にお問い合わせください。"
+        )
         
     new_user = User(
         email=data.email,
         name=data.name,
         picture=data.picture,
         role="admin" if is_super else "client",
-        is_approved=True if (is_super or is_invited) else False
+        is_approved=True, # ここに来る＝招待済みか管理者のため、即時承認
+        plan_type="admin" if is_super else "paid",
+        subscription_status="active"
     )
     db.add(new_user)
     db.commit()
     
-    # 招待されていた場合は、招待ステータスを更新（削除はしない）
+    # 招待されていた場合は、招待ステータスを更新
     if is_invited:
         print(f"[AUTH_DEBUG] User was invited: {email_lower}. Marking as accepted.")
         invitation.status = "accepted"
