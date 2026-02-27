@@ -212,11 +212,20 @@ def list_system_settings(db: Session = Depends(get_db), admin: User = Depends(ch
         "system_notice": {"value": "", "description": "システム全体のお知らせメッセージ"}
     }
     
-    # DBにない項目をデフォルト値で補完
+    # DBにない項目をデフォルト値で補完（DBに保存してIDを振る）
     db_keys = {s.key for s in settings}
+    new_settings = []
     for key, info in defaults.items():
         if key not in db_keys:
-            settings.append(SystemSetting(key=key, value=info["value"], description=info["description"]))
+            new_setting = SystemSetting(key=key, value=info["value"], description=info["description"])
+            db.add(new_setting)
+            new_settings.append(new_setting)
+            
+    if new_settings:
+        db.commit()
+        for s in new_settings:
+            db.refresh(s)
+            settings.append(s)
             
     return settings
 

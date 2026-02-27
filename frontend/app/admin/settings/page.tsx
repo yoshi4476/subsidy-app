@@ -152,7 +152,7 @@ export default function AdminSettingsPage() {
             </div>
             
             <div style={{ display: "grid", gap: 24 }}>
-              {settings.filter(s => s.key.includes("openai") || s.key.includes("ai_model")).map(setting => (
+              {settings.filter(s => s.key === "openai_api_key" || s.key.startsWith("ai_model")).map(setting => (
                 <div key={setting.key}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <label style={{ fontSize: 14, fontWeight: 700, color: "#475569" }}>{setting.description}</label>
@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
             </div>
             
             <div style={{ display: "grid", gap: 24 }}>
-              {settings.filter(s => !s.key.includes("openai") && !s.key.includes("ai_model")).map(setting => (
+              {settings.filter(s => s.key !== "openai_api_key" && !s.key.startsWith("ai_model")).map(setting => (
                 <div key={setting.key}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <label style={{ fontSize: 14, fontWeight: 700, color: "#475569" }}>{setting.description}</label>
