@@ -78,6 +78,12 @@ const toolsNav = [
   { href: "/admin", label: "管理者レビュー", icon: "shield" },
 ];
 
+const legalNav = [
+  { href: "/legal/terms", label: "利用規約", icon: "book" },
+  { href: "/legal/privacy", label: "プライバシーポリシー", icon: "shield" },
+  { href: "/legal/commercial", label: "特定商取引法に基づく表記", icon: "building" },
+];
+
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -103,7 +109,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       
       // 未承認ユーザーが制限対象ページにいる場合、リダイレクト
       // /waiting-approval 自体や、ログインページ(もしあれば)は除外
-      const isPublicPath = pathname === "/waiting-approval" || pathname === "/guide" || pathname === "/terms";
+      const isPublicPath = 
+        pathname === "/waiting-approval" || 
+        pathname === "/guide" || 
+        pathname === "/terms" || 
+        pathname.startsWith("/legal");
+      
       const isAdminPath = pathname.startsWith("/admin");
 
       if (!isApproved && role !== "admin" && !isPublicPath) {
@@ -280,6 +291,19 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 </a>
               </li>
             ))}
+            
+            <li className="sidebar-section-title">SUPPORT / LEGAL</li>
+            {legalNav.map((item) => (
+              <li key={item.href}>
+                <a href={item.href}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={icons[item.icon]} />
+                  </svg>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+
             {isAdmin && (
               <>
                 <li className="sidebar-section-title">ADMINISTRATION</li>
