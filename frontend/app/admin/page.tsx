@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
-import { API_BASE as API } from "../lib/config";
+import { API_BASE as API } from "../../lib/config";
 
 interface AuditLog {
   id: string;
