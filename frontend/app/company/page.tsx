@@ -235,12 +235,29 @@ export default function CorporateDNAPage() {
       {activeTab === "basic" && (
         <div className="fade-in">
           <div className="card" style={{ marginBottom: 24 }}>
-            <div className="card-header">
-              <div className="card-title">🏢 法人基本プロファイル</div>
+            <div style={{ marginBottom: 24, padding: 16, background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0" }}>
+                <label style={{ ...labelStyle, marginBottom: 12 }}>事業種別</label>
+                <div style={{ display: "flex", gap: 12 }}>
+                    <button 
+                        onClick={() => updateDna("company.business_category", "CORPORATION")}
+                        className={`btn ${dna.company.business_category === "CORPORATION" ? "btn-primary" : "btn-outline"}`}
+                        style={{ flex: 1, fontSize: 13 }}
+                    >
+                        🏢 法人（株式会社・合同会社等）
+                    </button>
+                    <button 
+                        onClick={() => updateDna("company.business_category", "SOLE_PROPRIETOR")}
+                        className={`btn ${dna.company.business_category === "SOLE_PROPRIETOR" ? "btn-primary" : "btn-outline"}`}
+                        style={{ flex: 1, fontSize: 13 }}
+                    >
+                        👤 個人事業主・フリーランス
+                    </button>
+                </div>
             </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
               <div>
-                <label style={labelStyle}>正式商号</label>
+                <label style={labelStyle}>{dna.company.business_category === "SOLE_PROPRIETOR" ? "屋号・氏名" : "正式商号"}</label>
                 <input
                   style={inputStyle}
                   value={dna.company.legal_name}
@@ -248,10 +265,19 @@ export default function CorporateDNAPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>法人番号</label>
-                <div style={{ ...inputStyle, background: "#f1f5f9", color: "var(--color-text-muted)", cursor: "not-allowed" }}>
-                  {dna.company.corporate_number}
-                </div>
+                <label style={labelStyle}>法人番号 {dna.company.business_category === "SOLE_PROPRIETOR" && "(任意)"}</label>
+                {dna.company.business_category === "SOLE_PROPRIETOR" ? (
+                    <input
+                        style={inputStyle}
+                        value={dna.company.corporate_number || ""}
+                        onChange={e => updateDna("company.corporate_number", e.target.value)}
+                        placeholder="持っている場合のみ入力"
+                    />
+                ) : (
+                    <div style={{ ...inputStyle, background: "#f1f5f9", color: "var(--color-text-muted)", cursor: "not-allowed" }}>
+                        {dna.company.corporate_number}
+                    </div>
+                )}
               </div>
             </div>
             <div style={{ marginBottom: 20 }}>
@@ -262,9 +288,9 @@ export default function CorporateDNAPage() {
                 onChange={e => updateDna("company.head_office_address", e.target.value)}
               />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
               <div>
-                <label style={labelStyle}>資本金 (円)</label>
+                <label style={labelStyle}>{dna.company.business_category === "SOLE_PROPRIETOR" ? "元入金（または自己資金） (円)" : "資本金 (円)"}</label>
                 <input
                   type="number"
                   style={inputStyle}
@@ -273,7 +299,7 @@ export default function CorporateDNAPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>設立年月日</label>
+                <label style={labelStyle}>{dna.company.business_category === "SOLE_PROPRIETOR" ? "開業年月日" : "設立年月日"}</label>
                 <input
                   style={inputStyle}
                   value={dna.company.founded_date || ""}
@@ -340,8 +366,11 @@ export default function CorporateDNAPage() {
 
           {/* 財務テーブル */}
           <div className="card">
-            <div className="card-header">
-              <div className="card-title">📋 決算データ入力</div>
+            <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className="card-title">📋 {dna.company.business_category === "SOLE_PROPRIETOR" ? "確定申告データ入力" : "決算データ入力"}</div>
+              <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                {dna.company.business_category === "SOLE_PROPRIETOR" ? "※青色申告決算書等の数値を入力してください" : "※決算報告書の数値を入力してください"}
+              </div>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="data-table">

@@ -23,6 +23,7 @@ export default function CompanyNewPage() {
 
   // ===== ステップ1: 基本情報 =====
   const [basic, setBasic] = useState({
+    business_category: "CORPORATION",
     corporate_number: "", legal_name: "", trade_name: "",
     head_office_address: "", head_office_prefecture: "13",
     establishment_date: "", capital_stock: "",
@@ -252,21 +253,42 @@ export default function CompanyNewPage() {
         {step === 0 && (
           <>
             <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 24 }}>🏢 基本情報</h2>
+            
+            <div style={{ marginBottom: 24, padding: 16, background: "var(--color-primary-surface)", borderRadius: 12, border: "1px solid var(--color-primary-light)" }}>
+                <label style={{ ...labelStyle, marginBottom: 12 }}>事業種別を選択してください</label>
+                <div style={{ display: "flex", gap: 12 }}>
+                    <button 
+                        onClick={() => setBasic({ ...basic, business_category: "CORPORATION" })}
+                        className={`btn ${basic.business_category === "CORPORATION" ? "btn-primary" : "btn-outline"}`}
+                        style={{ flex: 1, fontSize: 13 }}
+                    >
+                        🏢 法人（株式会社等）
+                    </button>
+                    <button 
+                        onClick={() => setBasic({ ...basic, business_category: "SOLE_PROPRIETOR" })}
+                        className={`btn ${basic.business_category === "SOLE_PROPRIETOR" ? "btn-primary" : "btn-outline"}`}
+                        style={{ flex: 1, fontSize: 13 }}
+                    >
+                        👤 個人事業主・フリーランス
+                    </button>
+                </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
               <div style={fieldStyle}>
-                <label style={labelStyle}>法人番号 *</label>
+                <label style={labelStyle}>{basic.business_category === "SOLE_PROPRIETOR" ? "屋号・氏名 *" : "法人名（正式名称）*"}</label>
+                <input style={inputStyle} placeholder={basic.business_category === "SOLE_PROPRIETOR" ? "屋号または氏名を入力" : "株式会社〇〇"} value={basic.legal_name} onChange={e => setBasic({ ...basic, legal_name: e.target.value })} />
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>法人番号 {basic.business_category === "SOLE_PROPRIETOR" ? "(任意)" : "*"}</label>
                 <input style={inputStyle} placeholder="1234567890123" value={basic.corporate_number} onChange={e => setBasic({ ...basic, corporate_number: e.target.value })} />
               </div>
               <div style={fieldStyle}>
-                <label style={labelStyle}>法人名（正式名称）*</label>
-                <input style={inputStyle} placeholder="株式会社〇〇" value={basic.legal_name} onChange={e => setBasic({ ...basic, legal_name: e.target.value })} />
-              </div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>屋号・通称</label>
+                <label style={labelStyle}>屋号・通称（あれば）</label>
                 <input style={inputStyle} placeholder="〇〇製作所" value={basic.trade_name} onChange={e => setBasic({ ...basic, trade_name: e.target.value })} />
               </div>
               <div style={fieldStyle}>
-                <label style={labelStyle}>本社所在地 *</label>
+                <label style={labelStyle}>{basic.business_category === "SOLE_PROPRIETOR" ? "事務所・自宅住所 *" : "本社所在地 *"}</label>
                 <input style={inputStyle} placeholder="東京都〇〇区..." value={basic.head_office_address} onChange={e => setBasic({ ...basic, head_office_address: e.target.value })} />
               </div>
               <div style={fieldStyle}>
@@ -274,12 +296,12 @@ export default function CompanyNewPage() {
                 <input style={inputStyle} placeholder="13" value={basic.head_office_prefecture} onChange={e => setBasic({ ...basic, head_office_prefecture: e.target.value })} />
               </div>
               <div style={fieldStyle}>
-                <label style={labelStyle}>設立年月日</label>
+                <label style={labelStyle}>{basic.business_category === "SOLE_PROPRIETOR" ? "開業年月日" : "設立年月日"}</label>
                 <input style={inputStyle} type="date" value={basic.establishment_date} onChange={e => setBasic({ ...basic, establishment_date: e.target.value })} />
               </div>
               <div style={fieldStyle}>
-                <label style={labelStyle}>資本金（円）*</label>
-                <input style={inputStyle} type="number" placeholder="30000000" value={basic.capital_stock} onChange={e => setBasic({ ...basic, capital_stock: e.target.value })} />
+                <label style={labelStyle}>{basic.business_category === "SOLE_PROPRIETOR" ? "元入金（または自己資金） (円)" : "資本金（円）*"}</label>
+                <input style={inputStyle} type="number" placeholder="3000000" value={basic.capital_stock} onChange={e => setBasic({ ...basic, capital_stock: e.target.value })} />
               </div>
               <div style={fieldStyle}>
                 <label style={labelStyle}>業種コード *</label>
@@ -323,9 +345,9 @@ export default function CompanyNewPage() {
         {/* ===== ステップ 1: 財務データ ===== */}
         {step === 1 && (
           <>
-            <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>💰 財務データ</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>💰 {basic.business_category === "SOLE_PROPRIETOR" ? "確定申告データ" : "財務データ"}</h2>
             <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 24 }}>
-              直近の決算データを入力してください（マッチングの精度に直結します）
+              {basic.business_category === "SOLE_PROPRIETOR" ? "直近の青色申告決算書等の数値を入力してください" : "直近の決算データを入力してください"}（マッチングの精度に直結します）
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 24px" }}>
               <div style={fieldStyle}>

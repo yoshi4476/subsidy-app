@@ -68,13 +68,14 @@ class ShareholderSchema(BaseModel):
     ratio: float
 
 class CompanyCreate(BaseModel):
-    corporate_number: str = Field(..., min_length=13, max_length=13, description="法人番号13桁")
-    legal_name: str = Field(..., description="正式商号")
+    corporate_number: Optional[str] = Field(None, description="法人番号13桁 (個人事業主は任意)")
+    business_category: str = Field("CORPORATION", description="事業種別: CORPORATION, SOLE_PROPRIETOR")
+    legal_name: str = Field(..., description="正式商号 / 屋号・氏名")
     trade_name: Optional[str] = None
     head_office_address: str
     head_office_prefecture: str = Field(..., max_length=4, description="都道府県コード")
     establishment_date: date
-    capital_stock: float = Field(..., gt=0, description="資本金（円）")
+    capital_stock: float = Field(0, description="資本金 / 元入金（円）")
     industry_code: str = Field(..., max_length=4, description="産業分類コード")
     user_id: Optional[str] = None
     executives: Optional[list[ExecutiveSchema]] = []
@@ -82,6 +83,7 @@ class CompanyCreate(BaseModel):
 
 class CompanyResponse(CompanyCreate):
     id: str
+    business_category: str
     created_at: datetime
     updated_at: datetime
     model_config = {"from_attributes": True}
