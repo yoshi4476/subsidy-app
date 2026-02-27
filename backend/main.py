@@ -71,14 +71,26 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS設定（環境変数から取得、未設定ならデフォルトを許可）
+# CORS設定（環境変数から取得、デフォルトは全てのVercelドメインを許容）
 import os
-cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001")
-cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+cors_origins_str = os.getenv("CORS_ORIGINS", "")
+if cors_origins_str:
+    cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+else:
+    # デフォルトでローカルとVercelプレビューを許容
+    cors_origins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
+    # 全てのVercelドメインを許容（開発・本番両対応）
+    # ※本番では特定のドメインに絞ることが推奨されますが、構築の安定性を優先します
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origin_regex="https://subsidy-app-.*\.vercel\.app", # VercelプレビューURL対応
+    allow_origins=cors_origins + ["https://subsidy-app-five.vercel.app", "https://subsidy-app-ys.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

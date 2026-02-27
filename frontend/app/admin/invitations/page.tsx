@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Plus, Trash2, Mail, ShieldCheck, Clock } from "lucide-react";
 
-// APIのベースURL（環境変数があれば使用）
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+import { API_BASE } from "../../../lib/config";
 
 interface Invitation {
   id: string;
@@ -24,7 +23,8 @@ export default function InvitationsPage() {
   // 招待リストの読み込み
   const loadInvitations = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/admin/invitations`, {
+      // API_BASEは '/api' を含むので /admin/invitations を追加
+      const res = await fetch(`${API_BASE}/admin/invitations`, {
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",
         },
@@ -52,7 +52,7 @@ export default function InvitationsPage() {
     if (!email) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/admin/invitations`, {
+      const res = await fetch(`${API_BASE}/admin/invitations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ export default function InvitationsPage() {
     if (!confirm("この招待を取り消しますか？")) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/admin/invitations/${id}`, {
+      const res = await fetch(`${API_BASE}/admin/invitations/${id}`, {
         method: "DELETE",
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",

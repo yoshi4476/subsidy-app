@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
-const API = "http://localhost:8081/api";
+import { API_BASE as API } from "../lib/config";
 
 interface AuditLog {
   id: string;
