@@ -52,10 +52,10 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     
-    # 招待されていた場合は、招待レコードを削除（クリーンアップ）
+    # 招待されていた場合は、招待ステータスを更新（削除はしない）
     if is_invited:
-        print(f"[AUTH_DEBUG] User was invited: {email_lower}. Auto-approving.")
-        db.delete(invitation)
+        print(f"[AUTH_DEBUG] User was invited: {email_lower}. Marking as accepted.")
+        invitation.status = "accepted"
         db.commit()
         
     db.refresh(new_user)

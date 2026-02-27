@@ -165,6 +165,10 @@ def create_invitation(data: InvitationCreate, db: Session = Depends(get_db), adm
     db.add(new_invitation)
     db.commit()
     db.refresh(new_invitation)
+
+    # 招待メールの送信
+    from services.email_service import email_service
+    email_service.send_invitation_email(email, admin.name or "管理者")
     
     log = AuditLog(actor_type="HUMAN", actor_id=admin.id, action="INVITE", target_entity=f"invite:{email}")
     db.add(log)

@@ -38,6 +38,7 @@ class Invitation(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     email = Column(String, unique=True, index=True, nullable=False, comment="招待メールアドレス")
     invited_by = Column(String, ForeignKey("users.id"), nullable=False, comment="招待者（管理者）ID")
+    status = Column(String, default="pending", comment="ステータス: pending, accepted")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     inviter = relationship("User", foreign_keys=[invited_by])
