@@ -30,6 +30,7 @@ class User(Base):
     plan_type = Column(String, default="paid", comment="プラン: trial, paid, admin")
     subscription_status = Column(String, default="active", comment="状態: active, expired")
     is_approved = Column(Boolean, default=False, comment="承認済みフラグ")
+    settings = Column(JSON, default=dict, comment="ユーザー設定 (通知など)")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     companies = relationship("Company", back_populates="user", cascade="all, delete-orphan")
@@ -357,3 +358,16 @@ class CashFlowSimulation(Base):
 
     company = relationship("Company")
     subsidy = relationship("Subsidy")
+
+
+# ============================================================
+# Section 8: システム設定 (Admin only)
+# ============================================================
+class SystemSetting(Base):
+    """システム全体の設定値 (APIキー、AIモデル設定等)"""
+    __tablename__ = "system_settings"
+
+    key = Column(String, primary_key=True, index=True, comment="設定キー")
+    value = Column(JSON, nullable=True, comment="設定値 (文字列, 数値, JSONオブジェクト等)")
+    description = Column(String, nullable=True, comment="設定の説明")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

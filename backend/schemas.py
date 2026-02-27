@@ -19,8 +19,17 @@ class UserResponse(UserCreate):
     id: str
     role: str
     is_approved: bool
+    settings: Optional[dict] = {}
     created_at: datetime
     model_config = {"from_attributes": True}
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    settings: Optional[dict] = None
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 class LoginRequest(BaseModel):
     email: str
@@ -377,3 +386,19 @@ class CorporateDNAResponse(BaseModel):
     hr: Optional[HRDataResponse] = None
     profile: Optional[BusinessProfileResponse] = None
     model_config = {"from_attributes": True}
+
+
+# ============================================================
+# システム設定 (SystemSetting)
+# ============================================================
+class SystemSettingCreate(BaseModel):
+    key: str
+    value: Optional[dict | str | float | int | list | bool] = None
+    description: Optional[str] = None
+
+class SystemSettingResponse(SystemSettingCreate):
+    updated_at: datetime
+    model_config = {"from_attributes": True}
+
+class SystemSettingsBulkUpdate(BaseModel):
+    settings: list[SystemSettingCreate]

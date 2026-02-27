@@ -6,14 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { API_BASE as API } from "../../lib/config";
 
-// 企業コンテキスト（全画面から選択中企業にアクセス可能に）
+// 企業コンテキスト
 interface Company {
   id: string;
   legal_name: string;
   trade_name: string | null;
   capital_stock: number;
-  industry_code: string;
-  head_office_prefecture: string;
 }
 
 interface CompanyContextType {
@@ -46,86 +44,49 @@ const icons: Record<string, string> = {
   clock: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2",
   help: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
   sparkles: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1m-1.636 6.364l-.707-.707M12 21v-1m-6.364-1.636l.707-.707M3 12h1m1.636-6.364l.707.707M12 8a4 4 0 110 8 4 4 0 010-8z",
-  cash: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-  trending: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
 };
 
-// ナビゲーション
+// ナビゲーション構成
 const mainNav = [
   { href: "/", label: "ダッシュボード", icon: "grid" },
-  { href: "/company", label: "統合企業カルテ (DNA)", icon: "building" },
+  { href: "/company", label: "企業カルテ (DNA)", icon: "building" },
   { href: "/subsidies", label: "補助金を探す", icon: "search" },
-  { href: "/subsidies/favorites", label: "お気に入り補助金", icon: "sparkles" },
-  { href: "/ai-planner", label: "AI事業計画書生成", icon: "edit" },
-  { href: "/documents/cabinet", label: "e-Cabinet (書類管理)", icon: "archive" },
-  { href: "/simulation/cashflow", label: "資金繰りシミュレーター", icon: "cash" },
-  { href: "/roadmap", label: "戦略的加点ロードマップ", icon: "trending" },
+  { href: "/subsidies/favorites", label: "お気に入り", icon: "sparkles" },
+  { href: "/ai-planner", label: "AI事業計画書", icon: "edit" },
   { href: "/applications", label: "マイ申請案件", icon: "archive" },
-  { href: "/timeline", label: "採択トレンド分析", icon: "clock" },
-];
-
-const ADMIN_NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "管理者ダッシュボード", icon: "settings" },
-  { href: "/admin/invitations", label: "ユーザー招待管理", icon: "plus" },
-  { href: "/admin/users", label: "ユーザー承認管理", icon: "shield" },
-  { href: "/settings", label: "設定", icon: "settings" },
 ];
 
 const toolsNav = [
-  { href: "/guide", label: "使い方ガイド (マニュアル)", icon: "help" },
+  { href: "/guide", label: "ガイド", icon: "help" },
   { href: "/terms", label: "用語辞書", icon: "book" },
-  { href: "/admin/knowledge", label: "AIナレッジ管理 (RAG)", icon: "book" },
+  { href: "/admin/knowledge", label: "AIナレッジ管理", icon: "book" },
   { href: "/admin", label: "管理者レビュー", icon: "shield" },
 ];
 
 const legalNav = [
+  { href: "/settings", label: "設定【すべてのユーザー】", icon: "settings" },
   { href: "/legal/terms", label: "利用規約", icon: "book" },
   { href: "/legal/privacy", label: "プライバシーポリシー", icon: "shield" },
-  { href: "/legal/commercial", label: "特定商取引法に基づく表記", icon: "building" },
+];
+
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin/dashboard", label: "管理者ダッシュボード", icon: "grid" },
+  { href: "/admin/invitations", label: "ユーザー招待管理", icon: "plus" },
+  { href: "/admin/users", label: "ユーザー承認管理", icon: "shield" },
+  { href: "/admin/settings", label: "管理者設定【管理者専用】", icon: "settings" },
 ];
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selected, setSelected] = useState<Company | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
-    if (status === "unauthenticated") {
-      setCompanies([]);
-      setSelected(null);
-      return;
-    }
-
-    // 承認制ガードロジック
-    if (status === "authenticated" && session?.user) {
-      const isApproved = (session.user as any)?.is_approved;
-      const role = (session.user as any)?.role;
-      
-      // 未承認ユーザーが制限対象ページにいる場合、リダイレクト
-      // /waiting-approval 自体や、ログインページ(もしあれば)は除外
-      const isPublicPath = 
-        pathname === "/waiting-approval" || 
-        pathname === "/guide" || 
-        pathname === "/terms" || 
-        pathname.startsWith("/legal");
-      
-      const isAdminPath = pathname.startsWith("/admin");
-
-      if (!isApproved && role !== "admin" && !isPublicPath) {
-        router.push("/auth/login");
-      }
-      
-      // 管理者以外が管理者用ページにアクセスした場合のガード
-      if (isAdminPath && role !== "admin") {
-        router.push("/");
-      }
-    }
+    if (status === "unauthenticated") return;
     
     async function loadCompanies() {
       try {
@@ -139,152 +100,33 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           }
         }
       } catch (e) {
-        console.error("SidebarLayout Error:", e);
+        console.error("Sidebar Error:", e);
       }
     }
-
-    if (status === "authenticated" && session?.user) {
-      loadCompanies();
-    }
-  }, [session, status, pathname, router]);
+    if (status === "authenticated" && session?.user) loadCompanies();
+  }, [session, status]);
 
   const isAdmin = (session?.user as any)?.role === "admin";
-
-  // ログイン画面と承認待ち画面ではサイドバーを出さない
-  const isAuthPage = pathname === "/auth/login";
-  const isWaitingPage = pathname === "/waiting-approval";
-  const isNoLayoutPage = isAuthPage || isWaitingPage;
+  const isAuthPage = pathname?.startsWith("/auth") || pathname === "/waiting-approval";
 
   if (!mounted) return null;
-
-  if (isNoLayoutPage) {
-    return (
-      <CompanyContext.Provider value={{ companies, selected, setSelected }}>
-        <main className="main-content-no-sidebar" style={{ width: '100vw', padding: 0 }}>
-          {children}
-        </main>
-      </CompanyContext.Provider>
-    );
-  }
+  if (isAuthPage) return <main style={{ width: '100vw' }}>{children}</main>;
 
   return (
     <CompanyContext.Provider value={{ companies, selected, setSelected }}>
       <div className="app-layout">
-        {/* モバイルヘッダー */}
-        <header className="mobile-header">
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)} aria-label="メニューを開く">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-          <span className="mobile-header-title">SubsidyNavi</span>
-          {session?.user?.image ? (
-            <img src={session.user.image} alt="" className="mobile-header-avatar" />
-          ) : (
-            <div className="mobile-header-avatar" style={{ background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
-              {session?.user?.name?.charAt(0) || "?"}
-            </div>
-          )}
-        </header>
-
-        {/* モバイルオーバーレイ */}
-        {isMobileMenuOpen && <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />}
-
-        <aside className={`sidebar ${isMobileMenuOpen ? "sidebar-open" : ""}`}>
-          {/* モバイル閉じるボタン */}
-          <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)} aria-label="メニューを閉じる">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-          {/* ロゴ */}
+        <aside className="sidebar">
           <div className="sidebar-logo">
             <h1>SubsidyNavi</h1>
-            <p>補助金検索・申請プラットフォーム</p>
+            <p>Ver. 2.5 Updated</p>
           </div>
 
-          {/* 企業セレクタ */}
-          <div className="company-selector">
-            <div
-              className="company-selector-trigger"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {selected ? (
-                <>
-                  <div className="company-avatar">
-                    {(selected.trade_name || selected.legal_name).charAt(0)}
-                  </div>
-                  <div className="company-info">
-                    <div className="company-name">{selected.trade_name || selected.legal_name}</div>
-                    <div className="company-meta">
-                      {(selected.capital_stock / 10000).toLocaleString()}万円
-                    </div>
-                  </div>
-                  <svg className="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </>
-              ) : (
-                <div className="company-info">
-                  <div className="company-name" style={{ opacity: 0.5 }}>企業未選択</div>
-                </div>
-              )}
-            </div>
-
-            {/* 企業ドロップダウン */}
-            {isDropdownOpen && (
-              <div className="company-dropdown">
-                {companies.map((c) => (
-                  <div
-                    key={c.id}
-                    className={`company-dropdown-item ${selected?.id === c.id ? "active" : ""}`}
-                    onClick={() => {
-                      setSelected(c);
-                      setIsDropdownOpen(false);
-                    }}
-                  >
-                    <div className="company-avatar" style={{ width: 28, height: 28, fontSize: 12 }}>
-                      {(c.trade_name || c.legal_name).charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{c.trade_name || c.legal_name}</div>
-                      <div style={{ fontSize: 11, opacity: 0.6 }}>{c.legal_name}</div>
-                    </div>
-                  </div>
-                ))}
-                <a href="/company/new" className="company-dropdown-add">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d={icons.plus} />
-                  </svg>
-                  企業を追加
-                </a>
-              </div>
-            )}
-          </div>
-
-          {/* ナビゲーション */}
           <ul className="sidebar-nav">
             <li className="sidebar-section-title">MAIN</li>
             {mainNav.map((item) => (
               <li key={item.href}>
-                <a href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={icons[item.icon]} />
-                  </svg>
-                  {item.label}
-                </a>
-              </li>
-            ))}
-            <li className="sidebar-section-title">TOOLS</li>
-            {toolsNav
-              .filter(item => !item.href.includes("admin") || isAdmin)
-              .map((item) => (
-              <li key={item.href}>
-                <a href={item.href}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <a href={item.href} className={pathname === item.href ? "active" : ""}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d={icons[item.icon]} />
                   </svg>
                   {item.label}
@@ -292,11 +134,23 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
               </li>
             ))}
             
-            <li className="sidebar-section-title">SUPPORT / LEGAL</li>
+            <li className="sidebar-section-title">TOOLS</li>
+            {toolsNav.filter(i => !i.href.includes("admin") || isAdmin).map((item) => (
+              <li key={item.href}>
+                <a href={item.href} className={pathname === item.href ? "active" : ""}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d={icons[item.icon]} />
+                  </svg>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+            
+            <li className="sidebar-section-title">設定【すべてのユーザー】</li>
             {legalNav.map((item) => (
               <li key={item.href}>
-                <a href={item.href}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <a href={item.href} className={pathname === item.href ? "active" : ""}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d={icons[item.icon]} />
                   </svg>
                   {item.label}
@@ -306,11 +160,11 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
             {isAdmin && (
               <>
-                <li className="sidebar-section-title">ADMINISTRATION</li>
+                <li className="sidebar-section-title">管理者設定【管理者専用】</li>
                 {ADMIN_NAV_ITEMS.map((item) => (
                   <li key={item.href}>
-                    <a href={item.href}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <a href={item.href} className={pathname === item.href ? "active" : ""}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d={icons[item.icon]} />
                       </svg>
                       {item.label}
@@ -321,44 +175,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             )}
           </ul>
 
-          {/* サイドバーフッター: ユーザー情報 & 企業数 */}
           <div className="sidebar-footer">
-            {session?.user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                {session.user.image ? (
-                  <img src={session.user.image} alt="Profile" style={{ width: 28, height: 28, borderRadius: "50%" }} />
-                ) : (
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
-                    {session.user.name?.charAt(0) || "U"}
-                  </div>
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{session.user.name}</div>
-                  <div style={{ fontSize: 11, opacity: 0.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{session.user.email}</div>
-                </div>
-                <button 
-                  onClick={() => signOut()} 
-                  style={{ background: "transparent", border: "none", cursor: "pointer", opacity: 0.6, padding: 4 }}
-                  title="ログアウト"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button 
-                  className="btn btn-primary btn-google-login" 
-                  style={{ width: "100%", justifyContent: "center", background: "linear-gradient(135deg, #6366f1, #a855f7)", border: "none" }}
-                  onClick={() => router.push("/auth/login")}
-                >
-                  プレミアムログイン
-                </button>
-              </div>
-            )}
-            
-            <div style={{ fontSize: 11, opacity: 0.4, textAlign: "center", marginTop: 8 }}>登録企業: {companies.length}社</div>
+            <div style={{ padding: "0 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{session?.user?.name}</div>
+              <div style={{ fontSize: 11, opacity: 0.6 }}>{session?.user?.email}</div>
+            </div>
+            <button onClick={() => signOut()} className="btn btn-outline btn-sm" style={{ width: "100%" }}>ログアウト</button>
           </div>
         </aside>
 
@@ -366,6 +188,20 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           {children}
         </main>
       </div>
+      
+      <style jsx global>{`
+        .sidebar-section-title {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: rgba(255, 255, 255, 0.4);
+          padding: 24px 16px 8px;
+        }
+        .active {
+          background: rgba(255, 255, 255, 0.1);
+          color: white !important;
+        }
+      `}</style>
     </CompanyContext.Provider>
   );
 }

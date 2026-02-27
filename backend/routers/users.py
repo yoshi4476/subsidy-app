@@ -78,3 +78,39 @@ def get_user(user_id: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     return user
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(user_id: str, data: UserUpdate, db: Session = Depends(get_db)):
+    """ユーザーのプロフィール・設定を更新"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+    
+    if data.name is not None:
+        user.name = data.name
+    if data.settings is not None:
+        # 既存の設定にマージ
+        current_settings = user.settings or {}
+        current_settings.update(data.settings)
+        user.settings = current_settings
+        
+    db.commit()
+    db.refresh(user)
+    return user
+
+@router.put("/{user_id}/password")
+def change_password(user_id: str, data: PasswordChangeRequest, db: Session = Depends(get_db)):
+    """パスワードを変更する"""
+    from passlib.hash import bcrypt
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+    
+    # 現在のパスワードを確認 (設定されている場合)
+    if user.hashed_password:
+        if not bcrypt.verify(data.current_password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="現在のパスワードが正しくありません")
+    
+    user.hashed_password = bcrypt.hash(data.new_password)
+    db.commit()
+    return {"message": "パスワードを正常に変更しました"}

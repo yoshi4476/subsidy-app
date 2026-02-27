@@ -1,275 +1,254 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { API_BASE as API } from "../../lib/config";
 
-const API = "http://localhost:8081/api";
+export default function PersonalSettingsPage() {
+  const { data: session, update } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-interface ModelInfo {
-  name: string;
-  provider: string;
-  description: string;
-  capabilities: string[];
-}
+  // プロフィール設定
+  const [name, setName] = useState(session?.user?.name || "");
 
-// システム設定画面
-export default function SettingsPage() {
-  const [apiUrl, setApiUrl] = useState("http://localhost:8081");
-  const [apiKey, setApiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [theme, setTheme] = useState("light");
-  const [lang, setLang] = useState("ja");
-  const [saved, setSaved] = useState(false);
-  const [models, setModels] = useState<Record<string, ModelInfo>>({});
-  const [defaults, setDefaults] = useState<Record<string, string>>({});
-  const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
-  const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
-  const [selectedTask, setSelectedTask] = useState("quality_scoring");
+  // パスワード設定
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
-  useEffect(() => {
-    // AIモデル情報を取得
-    fetch(`${API}/ai/models`).then(r => r.json()).then(data => {
-      setModels(data.models || {});
-      setDefaults(data.defaults || {});
-      setApiKeyConfigured(data.api_key_configured || false);
-    }).catch(() => {});
+  // 通知設定 (DBの settings カラムから取得)
+  const [notifications, setNotifications] = useState({
+    subsidy_updates: (session?.user as any)?.settings?.notifications?.subsidy_updates !== false,
+    deadline_reminders: (session?.user as any)?.settings?.notifications?.deadline_reminders !== false,
+  });
 
-    // ナレッジベース情報を取得
-    fetch(`${API}/ai/knowledge`).then(r => r.json()).then(data => {
-      setKnowledgeStats(data);
-    }).catch(() => {});
-  }, []);
+  const isAdmin = (session?.user as any)?.role === "admin";
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`${API}/users/${(session?.user as any).id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, settings: { notifications } }),
+      });
+
+      if (res.ok) {
+        await update(); // セッションを更新
+        setMessage({ type: "success", text: "プロフィールを更新しました。" });
+      } else {
+        const err = await res.json();
+        setMessage({ type: "error", text: err.detail || "更新に失敗しました。" });
+      }
+    } catch (e) {
+      setMessage({ type: "error", text: "通信エラーが発生しました。" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const capabilityLabels: Record<string, string> = {
-    quality_scoring: "品質評価",
-    plan_review: "計画書レビュー",
-    improvement_suggestions: "改善提案",
-    chat: "チャット",
-    translation: "要件翻訳",
-    summarization: "要約生成",
-    quick_analysis: "クイック分析",
-    term_explanation: "用語解説",
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwords.new !== passwords.confirm) {
+      setMessage({ type: "error", text: "新しいパスワードが一致しません。" });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`${API}/users/${(session?.user as any).id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_password: passwords.current,
+          new_password: passwords.new,
+        }),
+      });
+
+      if (res.ok) {
+        setMessage({ type: "success", text: "パスワードを変更しました。" });
+        setPasswords({ current: "", new: "", confirm: "" });
+      } else {
+        const err = await res.json();
+        setMessage({ type: "error", text: err.detail || "パスワードの変更に失敗しました。" });
+      }
+    } catch (e) {
+      setMessage({ type: "error", text: "通信エラーが発生しました。" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="fade-in">
-      <div className="page-header">
-        <h1>設定</h1>
-        <p>システムとAIモデルの設定を管理します</p>
-      </div>
+    <div className="settings-container fade-in" style={{ maxWidth: 800, margin: "0 auto", padding: "40px 20px" }}>
+      <header style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--color-text-dark)" }}>設定【すべてのユーザー】</h1>
+        <p style={{ color: "var(--color-text-muted)", marginTop: 4 }}>
+          あなたのアカウント情報と通知の設定を管理します
+        </p>
+      </header>
 
-      <div style={{ maxWidth: 720, display: "flex", flexDirection: "column", gap: 24 }}>
-        {/* API接続 */}
-        <div className="card">
-          <h3 className="card-title" style={{ marginBottom: 16 }}>🔌 API接続設定</h3>
-          <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6, display: "block" }}>
-            Backend API URL
-          </label>
-          <input
-            className="chat-input"
-            value={apiUrl}
-            onChange={(e) => setApiUrl(e.target.value)}
-            style={{ width: "100%", flex: "unset" }}
-          />
-          <div style={{ marginTop: 8, fontSize: 12, color: "var(--color-text-muted)" }}>
-            Backend FastAPIサーバーのURLを指定してください
-          </div>
+      {message && (
+        <div style={{
+          padding: 16,
+          borderRadius: 8,
+          marginBottom: 24,
+          backgroundColor: message.type === "success" ? "#ecfdf5" : "#fef2f2",
+          color: message.type === "success" ? "#065f46" : "#991b1b",
+          border: `1px solid ${message.type === "success" ? "#10b981" : "#ef4444"}`
+        }}>
+          {message.text}
         </div>
+      )}
 
-        {/* AI設定（大幅改修） */}
-        <div className="card">
-          <h3 className="card-title" style={{ marginBottom: 8 }}>🤖 AIモデル設定</h3>
-          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 20 }}>
-            補助金申請書の品質評価・文章生成・改善提案に使用するAIモデルを設定します
-          </p>
-
-          {/* APIキー設定 */}
-          <div style={{ marginBottom: 20, padding: "16px", background: apiKeyConfigured ? "var(--color-success-surface, #c6f6d5)" : "var(--color-warning-surface, #fefcbf)", borderRadius: "var(--radius-sm)", border: `1px solid ${apiKeyConfigured ? "#68d391" : "#f6e05e"}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span>{apiKeyConfigured ? "✅" : "⚠️"}</span>
-              <span style={{ fontWeight: 700, fontSize: 14 }}>
-                {apiKeyConfigured ? "✅ OpenAI API キー設定済み" : "⚠️ OpenAI API キーを設定してください"}
-              </span>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                className="chat-input"
-                type={showKey ? "text" : "password"}
-                placeholder="sk-..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                style={{ flex: 1 }}
-              />
-              <button className="btn btn-sm btn-outline" onClick={() => setShowKey(!showKey)}>
-                {showKey ? "隠す" : "表示"}
-              </button>
-            </div>
-            <div style={{ marginTop: 6, fontSize: 11, color: "var(--color-text-muted)" }}>
-              環境変数 OPENAI_API_KEY で設定するか、ここに入力してください。
-              <a href="https://platform.openai.com/api-keys" target="_blank" style={{ color: "var(--color-primary-light)", marginLeft: 4 }}>
-                APIキーを取得 →
-              </a>
-            </div>
-          </div>
-
-          {/* 利用可能モデル一覧 */}
-          <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>利用可能なモデル</h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-            {Object.entries(models).map(([id, model]) => (
-              <div key={id} style={{
-                padding: "14px 16px", borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--color-border)", background: "var(--color-surface)",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <div>
-                    <span style={{ fontWeight: 700, fontSize: 15 }}>{model.name}</span>
-                    <span style={{ fontSize: 12, color: "var(--color-text-muted)", marginLeft: 8 }}>{model.provider}</span>
-                  </div>
-                  <span style={{
-                    padding: "2px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700,
-                    background: id.includes("5.2") ? "#e9d5ff" : "#dbeafe",
-                    color: id.includes("5.2") ? "#6b21a8" : "#1d4ed8",
-                  }}>
-                    {id.includes("5.2") ? "世界最高峰" : "高速"}
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 8 }}>
-                  {model.description}
-                </div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {model.capabilities.map((cap) => (
-                    <span key={cap} style={{
-                      padding: "2px 8px", borderRadius: 8, fontSize: 10, fontWeight: 600,
-                      background: "var(--color-primary-surface)", color: "var(--color-primary-light)",
-                    }}>
-                      {capabilityLabels[cap] || cap}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* タスク別モデル配分 */}
-          <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>タスク別モデル配分</h4>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {Object.entries(defaults).map(([task, model]) => (
-              <div key={task} style={{
-                padding: "10px 14px", borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--color-border)", background: "var(--color-surface)",
-              }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                  {capabilityLabels[task] || task}
-                </div>
-                <select
-                  className="chat-input"
-                  style={{ width: "100%", flex: "unset", fontSize: 13 }}
-                  value={model}
-                  onChange={() => {}}
-                >
-                  {Object.entries(models).map(([id, m]) => (
-                    <option key={id} value={id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ナレッジベース情報 */}
-        {knowledgeStats && (
-          <div className="card">
-            <h3 className="card-title" style={{ marginBottom: 8 }}>📚 採択学習ナレッジベース</h3>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
-              過去の採択・不採択事例から抽出した知見が蓄積されています
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
-              <div style={{ textAlign: "center", padding: "12px", background: "var(--color-primary-surface)", borderRadius: "var(--radius-sm)" }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "var(--color-primary)" }}>
-                  {knowledgeStats.total_subsidies}
-                </div>
-                <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>対象補助金数</div>
-              </div>
-              <div style={{ textAlign: "center", padding: "12px", background: "var(--color-success-surface, #c6f6d5)", borderRadius: "var(--radius-sm)" }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "var(--color-success)" }}>50</div>
-                <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>学習済み事例数</div>
-              </div>
-              <div style={{ textAlign: "center", padding: "12px", background: "#e9d5ff", borderRadius: "var(--radius-sm)" }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#6b21a8" }}>90%</div>
-                <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>目標採択率</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {knowledgeStats.knowledge_base?.map((kb: any) => (
-                <div key={kb.key} style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "10px 14px", borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--color-border)",
-                }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: 13 }}>{kb.name}</span>
-                    <span style={{ fontSize: 11, color: "var(--color-text-muted)", marginLeft: 8 }}>
-                      全国平均採択率: {(kb.national_adoption_rate * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", gap: 12, fontSize: 11, color: "var(--color-text-secondary)" }}>
-                    <span>審査要因: {kb.key_factor_count}</span>
-                    <span>ベストプラクティス: {kb.best_practice_count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 表示設定 */}
-        <div className="card">
-          <h3 className="card-title" style={{ marginBottom: 16 }}>🎨 表示設定</h3>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6, display: "block" }}>
-              テーマ
-            </label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[
-                { id: "light", label: "ライト" },
-                { id: "dark", label: "ダーク" },
-              ].map((t) => (
-                <button key={t.id} className={`btn btn-sm ${theme === t.id ? "btn-primary" : "btn-outline"}`} onClick={() => setTheme(t.id)}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {isAdmin && (
+        <div style={{
+          padding: 20,
+          background: "linear-gradient(135deg, #6366f1, #a855f7)",
+          borderRadius: 12,
+          color: "white",
+          marginBottom: 32,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)"
+        }}>
           <div>
-            <label style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6, display: "block" }}>
-              表示言語
-            </label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[
-                { id: "ja", label: "日本語" },
-                { id: "en", label: "English" },
-              ].map((l) => (
-                <button key={l.id} className={`btn btn-sm ${lang === l.id ? "btn-primary" : "btn-outline"}`} onClick={() => setLang(l.id)}>
-                  {l.label}
-                </button>
-              ))}
-            </div>
+            <h3 style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>管理者権限をお持ちです</h3>
+            <p style={{ fontSize: 13, opacity: 0.9, margin: "4px 0 0 0" }}>システム全体の設定は管理者専用ページから行えます</p>
           </div>
+          <a
+            href="/admin/settings"
+            style={{
+              padding: "10px 18px",
+              background: "white",
+              color: "#6366f1",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 14,
+              textDecoration: "none",
+              transition: "transform 0.2s"
+            }}
+          >
+            管理者設定へ
+          </a>
         </div>
+      )}
 
-        {/* 保存ボタン */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button className="btn btn-primary" onClick={handleSave}>設定を保存</button>
-          {saved && (
-            <span style={{ fontSize: 13, color: "var(--color-success)", fontWeight: 600, animation: "fadeIn 0.3s ease" }}>
-              ✅ 保存しました
-            </span>
-          )}
-        </div>
+      <div style={{ display: "grid", gap: 32 }}>
+        {/* プロフィールセクション */}
+        <section className="card" style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: "var(--color-primary)" }}>●</span> プロフィール設定
+          </h2>
+          <form onSubmit={handleUpdateProfile}>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--color-text-secondary)" }}>表示名</label>
+              <input
+                type="text"
+                className="chat-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="例: 山田 太郎"
+                style={{ width: "100%", flex: "unset" }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 12, color: "var(--color-text-secondary)" }}>通知設定</label>
+              <div style={{ display: "grid", gap: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={notifications.subsidy_updates}
+                    onChange={(e) => setNotifications({ ...notifications, subsidy_updates: e.target.checked })}
+                    style={{ width: 18, height: 18 }}
+                  />
+                  <span style={{ fontSize: 14 }}>補助金情報のアップデートをメールで受け取る</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={notifications.deadline_reminders}
+                    onChange={(e) => setNotifications({ ...notifications, deadline_reminders: e.target.checked })}
+                    style={{ width: 18, height: 18 }}
+                  />
+                  <span style={{ fontSize: 14 }}>申請期限のリマインド通知を受け取る</span>
+                </label>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+              style={{ width: "100%", padding: 12, borderRadius: 8, fontWeight: 700 }}
+            >
+              {loading ? "更新中..." : "変更を保存"}
+            </button>
+          </form>
+        </section>
+
+        {/* セキュリティセクション */}
+        <section className="card" style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: "var(--color-danger)" }}>●</span> セキュリティ
+          </h2>
+          <form onSubmit={handleChangePassword}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--color-text-secondary)" }}>現在のパスワード</label>
+              <input
+                type="password"
+                className="chat-input"
+                value={passwords.current}
+                onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                style={{ width: "100%", flex: "unset" }}
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--color-text-secondary)" }}>新しいパスワード</label>
+              <input
+                type="password"
+                className="chat-input"
+                value={passwords.new}
+                onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                style={{ width: "100%", flex: "unset" }}
+              />
+            </div>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--color-text-secondary)" }}>確認用パスワード</label>
+              <input
+                type="password"
+                className="chat-input"
+                value={passwords.confirm}
+                onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                style={{ width: "100%", flex: "unset" }}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-outline"
+              disabled={loading}
+              style={{ width: "100%", padding: 12, borderRadius: 8, fontWeight: 700 }}
+            >
+              {loading ? "変更中..." : "パスワードを更新"}
+            </button>
+          </form>
+        </section>
+
+        {/* アカウント詳細情報 */}
+        <section style={{ padding: 16, background: "var(--color-primary-surface)", borderRadius: 12, border: "1px dashed var(--color-primary)" }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>アカウント詳細</h3>
+          <div style={{ fontSize: 13, display: "grid", gap: 4 }}>
+            <div>メールアドレス: <span style={{ fontWeight: 600 }}>{session?.user?.email}</span></div>
+            <div>ユーザーID: <span style={{ fontWeight: 400, opacity: 0.6, fontSize: 11 }}>{(session?.user as any)?.id}</span></div>
+            <div>プラン: <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>{(session?.user as any)?.plan_type === "admin" ? "管理者" : "プロフェッショナル"}</span></div>
+          </div>
+        </section>
       </div>
     </div>
   );

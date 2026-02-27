@@ -5,8 +5,27 @@ import os
 import json
 from typing import Optional, List, Dict, Any
 
-# OpenAI API キー（環境変数から取得）
+# OpenAI API キー（最初期化。利用時は get_api_key() を推奨）
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+def get_system_setting(key: str, default: Any = None) -> Any:
+    """DBからシステム設定を取得する内部ユーティリティ"""
+    from database import SessionLocal
+    from models import SystemSetting
+    db = SessionLocal()
+    try:
+        setting = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+        return setting.value if setting else default
+    except Exception as e:
+        print(f"[AI_SETTINGS] Error fetching {key}: {e}")
+        return default
+    finally:
+        db.close()
+
+def get_api_key():
+    """DBの設定、または環境変数からAPIキーを取得"""
+    db_key = get_system_setting("openai_api_key")
+    return db_key if db_key else OPENAI_API_KEY
 
 # 利用可能なAIモデル一覧 (ChatGPT 5.2 対応)
 AVAILABLE_MODELS = {
@@ -37,17 +56,22 @@ DEFAULT_MODELS = {
 
 def get_client():
     """OpenAI クライアントを取得"""
-    if not OPENAI_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
     try:
         from openai import OpenAI
-        return OpenAI(api_key=OPENAI_API_KEY)
+        return OpenAI(api_key=api_key)
     except Exception as e:
         print(f"[AI] OpenAI初期化エラー: {e}")
         return None
 
-def call_openai(prompt: str, model: str = "gpt-5.2", system_instruction: str = "", response_format: str = "text") -> Optional[str]:
+def call_openai(prompt: str, model: str = None, system_instruction: str = "", response_format: str = "text") -> Optional[str]:
     """OpenAI APIを呼び出す"""
+    # モデルが指定されていない場合はDBまたはデフォルト
+    if not model:
+        model = get_system_setting("ai_model_main", "gpt-5.2")
+    
     client = get_client()
     if not client:
         return None

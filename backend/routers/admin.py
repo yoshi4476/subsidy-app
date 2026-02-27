@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from database import get_db
-from models import AuditLog, Subsidy, User, Invitation
-from schemas import UserResponse, InvitationCreate, InvitationResponse
+from models import AuditLog, Subsidy, User, Invitation, SystemSetting
+from schemas import UserResponse, InvitationCreate, InvitationResponse, SystemSettingResponse, SystemSettingsBulkUpdate
 from datetime import datetime, timedelta
+import os
 from typing import List, Dict, Optional
 
 router = APIRouter(prefix="/api/admin", tags=["管理者機能"])
@@ -191,3 +192,56 @@ def delete_invitation(invitation_id: str, db: Session = Depends(get_db), admin: 
     db.commit()
     
     return {"message": "招待を取り消しました"}
+
+
+# ============================================================
+# システム設定 (System Settings)
+# ============================================================
+
+@router.get("/settings", response_model=List[SystemSettingResponse])
+def list_system_settings(db: Session = Depends(get_db), admin: User = Depends(check_admin)):
+    """全システム設定を取得"""
+    settings = db.query(SystemSetting).all()
+    
+    # デフォルト値の定義
+    defaults = {
+        "openai_api_key": {"value": os.environ.get("OPENAI_API_KEY", ""), "description": "OpenAI API Key (ChatGPT 5.2/4o)"},
+        "ai_model_main": {"value": "gpt-5.2", "description": "メイン推論・品質評価モデル"},
+        "ai_model_sub": {"value": "gpt-4o", "description": "高速生成・サマリー用モデル"},
+        "crawler_interval_hours": {"value": 24, "description": "クローラー実行間隔(時間)"},
+        "system_notice": {"value": "", "description": "システム全体のお知らせメッセージ"}
+    }
+    
+    # DBにない項目をデフォルト値で補完
+    db_keys = {s.key for s in settings}
+    for key, info in defaults.items():
+        if key not in db_keys:
+            settings.append(SystemSetting(key=key, value=info["value"], description=info["description"]))
+            
+    return settings
+
+@router.post("/settings", response_model=List[SystemSettingResponse])
+def update_system_settings(data: SystemSettingsBulkUpdate, db: Session = Depends(get_db), admin: User = Depends(check_admin)):
+    """システム設定を一括更新"""
+    results = []
+    for s_data in data.settings:
+        setting = db.query(SystemSetting).filter(SystemSetting.key == s_data.key).first()
+        if not setting:
+            setting = SystemSetting(key=s_data.key)
+            db.add(setting)
+        
+        setting.value = s_data.value
+        if s_data.description:
+            setting.description = s_data.description
+        
+        results.append(setting)
+    
+    db.commit()
+    for r in results:
+        db.refresh(r)
+        
+    log = AuditLog(actor_type="HUMAN", actor_id=admin.id, action="UPDATE_SETTINGS", target_entity="system:settings")
+    db.add(log)
+    db.commit()
+    
+    return results
