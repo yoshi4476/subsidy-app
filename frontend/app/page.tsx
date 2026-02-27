@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [favSubsidies, setFavSubsidies] = useState<LatestSubsidy[]>([]);
+  const [systemNotice, setSystemNotice] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,15 +50,17 @@ export default function DashboardPage() {
     async function loadData() {
       setLoading(true);
       try {
-        const [latest, m, stats, favs] = await Promise.all([
+        const [latest, m, stats, favs, noticeRes] = await Promise.all([
           fetch(`${API}/subsidies/latest`).then((r) => r.json()).catch(() => []),
           selected ? fetch(`${API}/subsidies/match/${selected.id}`).then((r) => r.json()).catch(() => []) : Promise.resolve([]),
           fetch(`${API}/cases/stats/analytics`).then((r) => r.json()).catch(() => null),
-          (session?.user as any)?.id ? fetch(`${API}/user/favorites?user_id=${(session?.user as any).id}`).then((r) => r.json()).catch(() => []) : Promise.resolve([])
+          (session?.user as any)?.id ? fetch(`${API}/user/favorites?user_id=${(session?.user as any).id}`).then((r) => r.json()).catch(() => []) : Promise.resolve([]),
+          fetch(`${API}/system/notice`).then((r) => r.json()).catch(() => ({ notice: "" }))
         ]);
         setLatestSubsidies(latest);
         setMatches(m);
         setAnalytics(stats);
+        setSystemNotice(noticeRes.notice || "");
         
         // お気に入り詳細の紐付け
         const favDetails = latest.filter((s: LatestSubsidy) => 
@@ -80,14 +83,16 @@ export default function DashboardPage() {
     setRefreshing(true);
     try {
       await fetch(`${API}/subsidies/refresh`, { method: "POST" });
-      const [latest, m, stats] = await Promise.all([
+      const [latest, m, stats, noticeRes] = await Promise.all([
         fetch(`${API}/subsidies/latest`).then((r) => r.json()).catch(() => []),
         selected ? fetch(`${API}/subsidies/match/${selected.id}`).then((r) => r.json()).catch(() => []) : Promise.resolve([]),
-        fetch(`${API}/cases/stats/analytics`).then((r) => r.json()).catch(() => null)
+        fetch(`${API}/cases/stats/analytics`).then((r) => r.json()).catch(() => null),
+        fetch(`${API}/system/notice`).then((r) => r.json()).catch(() => ({ notice: "" }))
       ]);
       setLatestSubsidies(latest);
       setMatches(m);
       setAnalytics(stats);
+      setSystemNotice(noticeRes.notice || "");
     } catch (e) { console.error(e); }
     finally { setRefreshing(false); }
   }
@@ -140,6 +145,22 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {systemNotice && (
+        <div style={{
+          marginBottom: 24, padding: "16px 20px", 
+          background: "linear-gradient(to right, #ebf8ff, #bee3f8)", 
+          borderLeft: "4px solid var(--color-primary-lighter)", 
+          borderRadius: "var(--radius-sm)",
+          display: "flex", alignItems: "flex-start", gap: 12
+        }}>
+          <span style={{ fontSize: 20 }}>📢</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-primary)", marginBottom: 4 }}>システムからのお知らせ</div>
+            <div style={{ fontSize: 14, color: "var(--color-text-dark)", whiteSpace: "pre-wrap" }}>{systemNotice}</div>
+          </div>
+        </div>
+      )}
 
       {urgentSubsidies.length > 0 && (
         <div style={{ marginBottom: 24 }}>

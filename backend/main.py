@@ -118,3 +118,14 @@ def root():
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.get("/api/system/notice")
+def get_system_notice():
+    from database import SessionLocal
+    from models import SystemSetting
+    db = SessionLocal()
+    try:
+        setting = db.query(SystemSetting).filter(SystemSetting.key == "system_notice").first()
+        return {"notice": setting.value if setting and setting.value else ""}
+    finally:
+        db.close()

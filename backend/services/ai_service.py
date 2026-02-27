@@ -154,7 +154,8 @@ def ai_quality_score(plan_text: str, subsidy_title: str = "", knowledge_base: li
   "critical_improvements": ["具体的な改善提案1", "具体的な改善提案2"]
 }}"""
 
-    result = call_openai(prompt, model="gpt-5.2", system_instruction=QUALITY_SYSTEM_PROMPT, response_format="json_object")
+    main_model = get_system_setting("ai_model_main", "gpt-5.2")
+    result = call_openai(prompt, model=main_model, system_instruction=QUALITY_SYSTEM_PROMPT, response_format="json_object")
 
     if result:
         try:
@@ -219,12 +220,13 @@ def ai_generate_full_plan(company_data: dict, subsidy_info: dict, knowledge_base
 
 出力はマークダウン形式で行い、各セクションに見出しを付けてください。総文字数は3500文字程度を目指し、魂の震えるような説得力を持たせてください。"""
 
-    result = call_openai(prompt, model="gpt-5.2", system_instruction=GENERATE_SYSTEM_PROMPT)
+    main_model = get_system_setting("ai_model_main", "gpt-5.2")
+    result = call_openai(prompt, model=main_model, system_instruction=GENERATE_SYSTEM_PROMPT)
     if result:
         return {
             "plan_markdown": result,
-            "ai_model": "gpt-5.2",
-            "supervision": "Total Controlled by ChatGPT 5.2"
+            "ai_model": main_model,
+            "supervision": f"Total Controlled by {main_model}"
         }
     return None
 
@@ -247,7 +249,8 @@ def ai_generate_plan_section(section_name: str, user_input: str, company_data: d
 - ROI（投資効果）と社会貢献の視点を必ず含めること。
 - 誠実かつ専門的なトーンで記述すること。
 """
-    return call_openai(prompt, model="gpt-4o", system_instruction=GENERATE_SYSTEM_PROMPT)
+    sub_model = get_system_setting("ai_model_sub", "gpt-4o")
+    return call_openai(prompt, model=sub_model, system_instruction=GENERATE_SYSTEM_PROMPT)
 
 def ai_improvement_suggestions(plan_text: str, knowledge_base: list = []) -> Optional[dict]:
     """誠実なAIによる総括的な改善提案"""
@@ -273,7 +276,8 @@ JSON形式で回答:
   "message_from_ai": "（企業への激励メッセージ）"
 }}"""
 
-    result = call_openai(prompt, model="gpt-5.2", system_instruction=system_prompt, response_format="json_object")
+    main_model = get_system_setting("ai_model_main", "gpt-5.2")
+    result = call_openai(prompt, model=main_model, system_instruction=system_prompt, response_format="json_object")
     if result:
         try:
             return json.loads(result)
@@ -295,7 +299,8 @@ def ai_critical_review(plan_text: str, subsidy_requirements: str = "", plan_data
 
 JSON形式で、指摘箇所(target_text)と具体的修正案を出力してください。"""
 
-    result = call_openai(prompt, model="gpt-5.2", system_instruction=system_prompt, response_format="json_object")
+    main_model = get_system_setting("ai_model_main", "gpt-5.2")
+    result = call_openai(prompt, model=main_model, system_instruction=system_prompt, response_format="json_object")
     if result:
         try:
             return json.loads(result)
