@@ -35,8 +35,9 @@ export default function InvitationsPage() {
   // 招待リストの読み込み
   const loadInvitations = async () => {
     try {
-      // API_BASEは '/api' を含むので /admin/invitations を追加
-      const res = await fetch(`${API_BASE}/admin/invitations`, {
+      // 常に末尾スラッシュ付きでリクエスト
+      const targetUrl = `${API_BASE}/admin/invitations/`;
+      const res = await fetch(targetUrl, {
         headers: {
           "X-User-ID": (session?.user as any)?.id || "",
         },
@@ -64,7 +65,8 @@ export default function InvitationsPage() {
     if (!email) return;
 
     try {
-      const res = await fetch(`${API_BASE}/admin/invitations`, {
+      const targetUrl = `${API_BASE}/admin/invitations/`;
+      const res = await fetch(targetUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +80,7 @@ export default function InvitationsPage() {
         setEmail("");
         loadInvitations();
       } else {
-        const errorData = await res.json().catch(() => ({ detail: `HTTP ${res.status} Error` }));
+        const errorData = await res.json().catch(() => ({ detail: `HTTP ${res.status} Method Not Allowed - URL: ${targetUrl}` }));
         console.error("Invitation failed:", errorData);
         setMessage({ type: "error", text: errorData.detail || "招待に失敗しました。" });
       }

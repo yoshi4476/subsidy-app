@@ -125,12 +125,12 @@ async def run_crawler_manually(db: Session = Depends(get_db), admin: User = Depe
 # 招待管理 (Invitations)
 # ============================================================
 
-@router.get("/invitations", response_model=List[InvitationResponse])
+@router.get("/invitations/", response_model=List[InvitationResponse])
 def list_invitations(db: Session = Depends(get_db), admin: User = Depends(check_admin)):
     """招待リストを取得"""
     return db.query(Invitation).order_by(Invitation.created_at.desc()).all()
 
-@router.post("/invitations", response_model=InvitationResponse)
+@router.post("/invitations/", response_model=InvitationResponse)
 def create_invitation(data: InvitationCreate, db: Session = Depends(get_db), admin: User = Depends(check_admin)):
     """新規ユーザーを招待（事前承認リストに追加）"""
     email = data.email.lower().strip()
