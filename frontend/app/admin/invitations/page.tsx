@@ -19,9 +19,16 @@ export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error" | "warning"; text: string } | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
 
   // API URLの妥当性チェック
   useEffect(() => {
+    // 開発/特定環境でデバッグ情報を出すための自動検知
+    if (typeof window !== "undefined") {
+      if (window.location.search.includes("debug=true") || API_BASE.includes("localhost")) {
+        setDebugMode(true);
+      }
+    }
     if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
       if (API_BASE.includes("localhost")) {
         setMessage({ 
@@ -119,6 +126,14 @@ export default function InvitationsPage() {
         <h1>ユーザー招待</h1>
         <p>新しいユーザーを招待リストに追加すると、そのユーザーはログイン時に自動的に承認されます。</p>
       </div>
+
+      {debugMode && (
+        <div className="debug-hud">
+          <strong>Backend Diagnostics:</strong><br/>
+          API_BASE: <code>{API_BASE}</code><br/>
+          Session ID: <code>{(session?.user as any)?.id || "None"}</code>
+        </div>
+      )}
 
       <div className="content-grid">
         {/* 送信フォーム */}
@@ -268,6 +283,16 @@ export default function InvitationsPage() {
           background: #fffbeb;
           color: #92400e;
           border: 1px solid #fef3c7;
+        }
+        .debug-hud {
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: #1e293b;
+          color: #38bdf8;
+          border-radius: 0.75rem;
+          font-family: monospace;
+          font-size: 0.8rem;
+          border: 1px solid #334155;
         }
         .email-cell {
           font-weight: 600;
