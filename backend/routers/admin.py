@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from database import get_db
-from models import AuditLog, Subsidy, User
-from schemas import UserResponse
+from models import AuditLog, Subsidy, User, Invitation
+from schemas import UserResponse, InvitationCreate, InvitationResponse
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
@@ -114,3 +114,58 @@ async def run_crawler_manually(db: Session = Depends(get_db), admin: User = Depe
     from services.subsidy_crawler import fetch_from_jgrants_and_sync
     result = await fetch_from_jgrants_and_sync(db)
     return result
+
+
+# ============================================================
+# 招待管理 (Invitations)
+# ============================================================
+
+@router.get("/invitations", response_model=List[InvitationResponse])
+def list_invitations(db: Session = Depends(get_db), admin: User = Depends(check_admin)):
+    """招待リストを取得"""
+    return db.query(Invitation).order_by(Invitation.created_at.desc()).all()
+
+@router.post("/invitations", response_model=InvitationResponse)
+def create_invitation(data: InvitationCreate, db: Session = Depends(get_db), admin: User = Depends(check_admin)):
+    """新規ユーザーを招待（事前承認リストに追加）"""
+    email = data.email.lower().strip()
+    
+    # 重複チェック
+    existing = db.query(Invitation).filter(Invitation.email == email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="このメールアドレスは既に招待済みです")
+    
+    # 既にユーザーとして存在するかチェック
+    user = db.query(User).filter(User.email == email).first()
+    if user and user.is_approved:
+        raise HTTPException(status_code=400, detail="このユーザーは既に承認済みです")
+
+    new_invitation = Invitation(
+        email=email,
+        invited_by=admin.id
+    )
+    db.add(new_invitation)
+    db.commit()
+    db.refresh(new_invitation)
+    
+    log = AuditLog(actor_type="HUMAN", actor_id=admin.id, action="INVITE", target_entity=f"invite:{email}")
+    db.add(log)
+    db.commit()
+    
+    return new_invitation
+
+@router.delete("/invitations/{invitation_id}")
+def delete_invitation(invitation_id: str, db: Session = Depends(get_db), admin: User = Depends(check_admin)):
+    """招待を取り消す"""
+    inv = db.query(Invitation).filter(Invitation.id == invitation_id).first()
+    if not inv:
+        raise HTTPException(status_code=404, detail="招待が見つかりません")
+    
+    email = inv.email
+    db.delete(inv)
+    
+    log = AuditLog(actor_type="HUMAN", actor_id=admin.id, action="REVOKE_INVITE", target_entity=f"invite:{email}")
+    db.add(log)
+    db.commit()
+    
+    return {"message": "招待を取り消しました"}

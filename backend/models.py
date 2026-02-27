@@ -32,6 +32,17 @@ class User(Base):
     companies = relationship("Company", back_populates="user", cascade="all, delete-orphan")
 
 
+class Invitation(Base):
+    __tablename__ = "invitations"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    email = Column(String, unique=True, index=True, nullable=False, comment="招待メールアドレス")
+    invited_by = Column(String, ForeignKey("users.id"), nullable=False, comment="招待者（管理者）ID")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    inviter = relationship("User", foreign_keys=[invited_by])
+
+
 # ============================================================
 # Section 1.1: 基本属性 (companies)
 # ============================================================

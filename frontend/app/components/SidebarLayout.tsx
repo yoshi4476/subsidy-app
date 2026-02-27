@@ -66,7 +66,8 @@ const mainNav = [
 
 const ADMIN_NAV_ITEMS = [
   { href: "/admin/dashboard", label: "管理者ダッシュボード", icon: "settings" },
-  { href: "/admin/users", label: "ユーザー管理・承認", icon: "shield" },
+  { href: "/admin/invitations", label: "ユーザー招待管理", icon: "plus" },
+  { href: "/admin/users", label: "ユーザー承認管理", icon: "shield" },
   { href: "/settings", label: "設定", icon: "settings" },
 ];
 

@@ -15,10 +15,18 @@ class UserCreate(BaseModel):
     name: Optional[str] = None
     picture: Optional[str] = None
 
-class UserResponse(UserCreate):
+    model_config = {"from_attributes": True}
+
+
+# ============================================================
+# 招待 (Invitation)
+# ============================================================
+class InvitationCreate(BaseModel):
+    email: str
+
+class InvitationResponse(InvitationCreate):
     id: str
-    role: str
-    is_approved: bool
+    invited_by: str
     created_at: datetime
     model_config = {"from_attributes": True}
 

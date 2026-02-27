@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
+from models import User, Invitation
 from schemas import UserCreate, UserResponse
 
 router = APIRouter(prefix="/api/users", tags=["ユーザー管理"])
@@ -33,6 +33,10 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
         db.refresh(user)
         return user
     
+    # 招待リストに含まれているかチェック
+    invitation = db.query(Invitation).filter(Invitation.email == email_lower).first()
+    is_invited = invitation is not None
+    
     # Create new user
     is_super = email_lower == SUPER_ADMIN_EMAIL
     if is_super:
@@ -43,10 +47,17 @@ def create_or_get_user(data: UserCreate, db: Session = Depends(get_db)):
         name=data.name,
         picture=data.picture,
         role="admin" if is_super else "client",
-        is_approved=True if is_super else False
+        is_approved=True if (is_super or is_invited) else False
     )
     db.add(new_user)
     db.commit()
+    
+    # 招待されていた場合は、招待レコードを削除（クリーンアップ）
+    if is_invited:
+        print(f"[AUTH_DEBUG] User was invited: {email_lower}. Auto-approving.")
+        db.delete(invitation)
+        db.commit()
+        
     db.refresh(new_user)
     return new_user
 
