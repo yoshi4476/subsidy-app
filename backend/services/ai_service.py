@@ -307,3 +307,48 @@ JSON形式で、指摘箇所(target_text)と具体的修正案を出力してく
         except Exception:
             pass
     return None
+
+
+def ai_generate_attachment_draft(
+    doc_name: str,
+    doc_description: str,
+    company_data: dict,
+    subsidy_info: dict,
+    user_context: str = "",
+    knowledge_base: list = []
+) -> Optional[str]:
+    """特定の添付書類（例：「IT導入による効果の具体的根拠」など）に特化した文章生成"""
+    system_prompt = """あなたは補助金申請の「最高峰のマスタライター」です。
+申請者のDNAを、補助金の趣旨に完璧に合致させ、論理的かつ情熱的な添付書類を生成します。
+文章は誠実であり、誇張や嘘を排除しつつ、企業のポテンシャルを最大限に引き出してください。"""
+
+    kb_context = ""
+    if knowledge_base:
+        kb_context = "\n=== 参照ナレッジ ===\n"
+        for item in knowledge_base[:5]:
+            kb_context += f"- {item}\n"
+
+    prompt = f"""以下の情報に基づき、補助金申請の添付書類「{doc_name}」のドラフトを生成してください。
+
+【書類の説明】
+{doc_description}
+
+【企業DNA情報】
+{json.dumps(company_data, ensure_ascii=False, default=str)}
+
+【補助金情報】
+{json.dumps(subsidy_info, ensure_ascii=False, default=str)}
+
+【ユーザーからの追加指示/コンテキスト】
+{user_context}
+
+{kb_context}
+
+要件:
+- 補助金の「採択基準」に適合するよう、具体的かつ説得力のある内容にすること。
+- ROI（投資対効果）や社会性、賃上げ等の視点を、この書類の文脈に合わせて適切に組み込むこと。
+- 誰が読んでも理解できる平易さと、プロフェッショナルな専門性を両立させること。
+- 出力はマークダウン形式で行い、必要に応じて表やリストを活用してください。
+"""
+    model = get_system_setting("ai_model_main", "gpt-5.2")
+    return call_openai(prompt, model=model, system_instruction=system_prompt)

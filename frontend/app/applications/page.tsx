@@ -21,6 +21,7 @@ interface ApplicationCase {
   score_at_submission: number | null;
   status_updated_at: string;
   reporting_progress: ReportingTask[];
+  specific_documents: any[];
 }
 
 export default function MyApplicationsPage() {
@@ -120,6 +121,22 @@ export default function MyApplicationsPage() {
                       <span>最終更新</span>
                       <span style={{ fontWeight: 600 }}>{new Date(c.status_updated_at).toLocaleDateString()}</span>
                     </div>
+                    
+                    {/* 新設：書類準備状況 */}
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed var(--color-border)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
+                        <span style={{ fontWeight: 700 }}>申請書類準備</span>
+                        <span style={{ color: "var(--color-primary)", fontWeight: 800 }}>{c.specific_documents?.length || 0} / --</span>
+                      </div>
+                      <div style={{ height: 6, background: "#edf2f7", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ 
+                          height: "100%", 
+                          width: `${Math.min(((c.specific_documents?.length || 0) / 5) * 100, 100)}%`, // 仮に5つ必要とする
+                          background: "var(--color-primary)",
+                          borderRadius: 3
+                        }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -187,7 +204,9 @@ export default function MyApplicationsPage() {
                 {c.result === "ADOPTED" && (
                   <ProfitReturnSimulator subsidyTitle={subsidies[c.subsidy_id]} />
                 )}
-                <button className="btn btn-sm btn-outline">詳細ドキュメントを表示</button>
+                <a href={`/applications/${c.id}/documents`} className="btn btn-sm btn-primary">
+                  📄 申請書類を管理・自動生成
+                </a>
               </div>
             </div>
           ))}

@@ -183,6 +183,23 @@ class BusinessProfileResponse(BusinessProfileCreate):
 
 
 # ============================================================
+# 書類 (Document)
+# ============================================================
+class DocumentResponse(BaseModel):
+    id: str
+    doc_type: str
+    file_name: str
+    mime_type: str
+    upload_date: datetime
+    expiry_date: Optional[date] = None
+    fiscal_year: Optional[int] = None
+    ocr_extracted: bool = False
+    category: str = "COMMON"
+    application_case_id: Optional[str] = None
+    model_config = {"from_attributes": True}
+
+
+# ============================================================
 # 補助金 (Subsidy)
 # ============================================================
 class SubsidyCondition(BaseModel):
@@ -230,9 +247,9 @@ class SubsidyCreate(BaseModel):
     project_end: Optional[date] = None
     target_region: str = "ALL"
     target_industries: str = "ALL"
-    max_capital: Optional[float] = None
     max_employees: Optional[int] = None
     required_documents: list[dict] = []
+    submission_guide: dict = {}
 
 class SubsidyResponse(SubsidyCreate):
     id: str
@@ -294,6 +311,7 @@ class ApplicationCaseResponse(ApplicationCaseCreate):
     created_at: datetime
     updated_at: datetime
     reporting_progress: list["ReportingProgressResponse"] = []
+    specific_documents: list[DocumentResponse] = []
     model_config = {"from_attributes": True}
 
 

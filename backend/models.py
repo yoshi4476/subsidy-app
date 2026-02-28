@@ -191,8 +191,10 @@ class Document(Base):
     fiscal_year = Column(Integer, nullable=True, comment="対象年度")
     ocr_extracted = Column(Boolean, default=False, comment="OCR抽出済みフラグ")
     category = Column(String, default="COMMON", comment="COMMON / SUBSIDY_SPECIFIC")
+    application_case_id = Column(String, ForeignKey("application_cases.id"), nullable=True, comment="特定の申請案件に紐づく書類")
 
     company = relationship("Company", back_populates="documents")
+    application_case = relationship("ApplicationCase", back_populates="specific_documents")
 
 
 # ============================================================
@@ -237,6 +239,7 @@ class Subsidy(Base):
 
     # 必要書類
     required_documents = Column(JSON, nullable=True, default=list, comment="必要書類リスト")
+    submission_guide = Column(JSON, nullable=True, default=dict, comment="書類作成ガイダンス（AI用・ユーザー用）")
 
     # ステータス管理
     status = Column(String, default="PENDING_REVIEW", comment="PENDING_REVIEW/PUBLISHED/CLOSED/ARCHIVED")
@@ -276,6 +279,7 @@ class ApplicationCase(Base):
     company = relationship("Company", back_populates="application_cases")
     subsidy = relationship("Subsidy", back_populates="application_cases")
     reporting_progress = relationship("ReportingProgress", back_populates="application_case", cascade="all, delete-orphan")
+    specific_documents = relationship("Document", back_populates="application_case")
 
 
 # ============================================================

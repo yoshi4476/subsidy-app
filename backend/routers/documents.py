@@ -23,6 +23,7 @@ def upload_document(
     fiscal_year: int = Form(None),
     expiry_date: str = Form(None),
     category: str = Form("COMMON"),
+    application_case_id: str = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
@@ -59,6 +60,7 @@ def upload_document(
         fiscal_year=fiscal_year,
         expiry_date=expiry,
         category=category,
+        application_case_id=application_case_id,
         ocr_extracted=False,
     )
     db.add(doc)
@@ -73,6 +75,7 @@ def upload_document(
         "fiscal_year": doc.fiscal_year,
         "expiry_date": doc.expiry_date.isoformat() if doc.expiry_date else None,
         "category": doc.category,
+        "application_case_id": doc.application_case_id,
         "upload_date": doc.upload_date.isoformat() if doc.upload_date else None,
         "ocr_extracted": doc.ocr_extracted,
     }
@@ -91,6 +94,7 @@ def list_documents(company_id: str, db: Session = Depends(get_db)):
             "fiscal_year": d.fiscal_year,
             "expiry_date": d.expiry_date.isoformat() if d.expiry_date else None,
             "category": d.category,
+            "application_case_id": d.application_case_id,
             "upload_date": d.upload_date.isoformat() if d.upload_date else None,
             "ocr_extracted": d.ocr_extracted,
         }

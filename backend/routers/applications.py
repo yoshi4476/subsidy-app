@@ -10,6 +10,9 @@ from schemas import (
     TermDictionaryCreate, TermDictionaryResponse,
     AuditLogResponse,
 )
+from services.ai_service import ai_generate_attachment_draft
+from models import Subsidy, Company
+import json
 
 router = APIRouter(tags=["申請事例・用語辞書"])
 
@@ -190,3 +193,54 @@ def list_audit_logs(
     if target_entity:
         query = query.filter(AuditLog.target_entity.contains(target_entity))
     return query.order_by(AuditLog.created_at.desc()).limit(limit).all()
+
+
+# ============================================================
+# 添付書類ドラフト作成 (AI)
+# ============================================================
+@router.post("/api/cases/{case_id}/documents/draft")
+def generate_doc_draft(
+    case_id: str,
+    data: dict,
+    db: Session = Depends(get_db)
+):
+    """特定の添付書類のドラフトを生成する"""
+    case = db.query(ApplicationCase).filter(ApplicationCase.id == case_id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail="案件が見つかりません")
+    
+    company = db.query(Company).filter(Company.id == case.company_id).first()
+    subsidy = db.query(Subsidy).filter(Subsidy.id == case.subsidy_id).first()
+    
+    # 会社DNAデータの整形
+    company_context = {
+        "basic": {
+            "legal_name": company.legal_name,
+            "business_category": company.business_category,
+            "capital_stock": company.capital_stock,
+            "establishment_date": str(company.establishment_date),
+            "industry_code": company.industry_code,
+        },
+        "profile": company.business_profile.business_summary if company.business_profile else "",
+        "hr": {
+            "employee_count": company.hr_data[0].employee_count_total if company.hr_data else 0,
+            "wage_raise_declared": company.hr_data[0].wage_raise_declared if company.hr_data else False
+        } if company.hr_data else {}
+    }
+
+    draft = ai_generate_attachment_draft(
+        doc_name=data.get("doc_name", "添付書類"),
+        doc_description=data.get("doc_description", ""),
+        company_data=company_context,
+        subsidy_info={
+            "title": subsidy.title,
+            "administering_body": subsidy.administering_body,
+            "description": subsidy.description
+        },
+        user_context=data.get("user_context", "")
+    )
+    
+    if not draft:
+        raise HTTPException(status_code=500, detail="ドラフトの生成に失敗しました")
+        
+    return {"draft": draft}
