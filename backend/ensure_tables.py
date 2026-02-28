@@ -32,5 +32,18 @@ def migrate():
         except Exception as e:
             print(f"MIGRATION ERROR in alter table: {e}")
 
+    # 3. 補助金書類対応のマイグレーション
+    try:
+        from migrate_submission_docs import migrate as migrate_docs
+        from update_subsidy_docs import update_docs
+        
+        print("MIGRATION: Running submission docs migration...")
+        migrate_docs()
+        print("MIGRATION: Updating subsidy document metadata...")
+        update_docs()
+        print("MIGRATION: Document support updates completed.")
+    except Exception as e:
+        print(f"MIGRATION ERROR in document updates: {e}")
+
 if __name__ == "__main__":
     migrate()

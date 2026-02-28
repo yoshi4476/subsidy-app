@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useCompany } from "../../components/SidebarLayout";
+import { useCompany } from "../../../components/SidebarLayout";
 
 const API = "http://localhost:8081/api";
 
